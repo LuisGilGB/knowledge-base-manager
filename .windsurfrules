@@ -1,0 +1,52 @@
+# Workspace rules
+
+## Goals
+
+- The functionality should be very similar to the one in your computer to manage your  filesystem (e.g. Finder on MacOS). Here are some of the actions you need to perform:
+    - **Read**: read the files and folders from the database that are in the Google Drive connection:
+        - Mind that this is like the same functionality as in `ls` in your terminal, meaning, the API is done so that you have to specify which “folder” you want to read, and list the subsequent files/folders.
+    - **Delete**: the ability to remove a file from the list of files indexed (mind that this does NOT delete the file in Google Drive, but instead stops listing it as indexed).
+    - **Create/Update**: you do **not** need to perform these actions.
+- Now, there is one more thing! The File Picker is meant to be used for picking and INDEXING files to build Knowledge Bases (see API docs below) of a subset of files/folders, and as such, we want the user to be able to:
+    - Select a file/folder and index it (see API endpoints in jupyter notebook below).
+    - Provide information about whether the file has been indexed or not.
+    - Allow the user to de-index a file (without necessarily deleting the file), and show the user when the file has been de-index.
+- Bonus points:
+    - Sorting:
+        - By name
+        - By date
+    - Filtering:
+        - By name
+    - Searching:
+        - By name
+
+## Tech stack
+
+- **Framework**: React + Next.js (latest stable version)
+- **Data Fetching**: [SWR](https://swr.vercel.app/) + fetch
+- **Styling**: Tailwind CSS (latest stable version)
+- **Components library**: [Shadcn](https://ui.shadcn.com/) (ensure compatibility with the latest Next.js version)
+
+## 📓 Evaluation Criteria to maximize
+
+We will look at the code and UI/UX's quality.
+
+🎼 **Code quality:**
+
+- Reusing components
+- Use of custom hooks
+- [SOLID design principles](https://medium.com/byborg-engineering/applying-solid-to-react-ca6d1ff926a4)
+- Use of comments wherever necessary
+- Proper typing of variables
+- React good practices
+- Proper use of `useEffect`
+- Minimizing unnecessary re-renders.
+- Next.js good practices
+
+🖥️ **UI/UX quality:**
+
+- Does everything work as expected? Are there any console errors or broken features?
+- Is it fast? Do you have to wait for the UI? Does it make good use of optimistic updates?
+- Is it intuitive?
+- Does it look visually appealing?
+- Low Cumulative Layout Shift? Do things move around when clicking something (this is bad)? [Learn more about CLS](https://vercel.com/docs/speed-insights/metrics#cumulative-layout-shift-cls)
