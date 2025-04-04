@@ -226,11 +226,11 @@ export class KnowledgeBaseService {
   async listKnowledgeBaseResources(
     knowledgeBaseId: string,
     resourcePath: string = '/'
-  ): Promise<Resource[]> {
+  ): Promise<PaginatedResponse<Resource>> {
     try {
       const endpoint = `/knowledge_bases/${knowledgeBaseId}/resources/children`;
 
-      return await this.client.get<Resource[]>(endpoint, {
+      return await this.client.get<PaginatedResponse<Resource>>(endpoint, {
         resource_path: resourcePath,
       });
     } catch (error) {
