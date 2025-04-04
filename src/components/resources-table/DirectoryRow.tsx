@@ -8,6 +8,7 @@ import { getResourceName, getStatusIndicator } from "./utils";
 import useToggle from "@/hooks/useToggle";
 import { useResources } from "@/lib/api/hooks";
 import FileRow from "./FileRow";
+import SkeletonRow from "./SkeletonRow";
 
 interface DirectoryRowProps {
   connectionId: string;
@@ -18,7 +19,7 @@ interface DirectoryRowProps {
 const DirectoryRow = ({ connectionId, resource, leftOffset = 0 }: DirectoryRowProps) => {
   const [expanded, toggleExpanded] = useToggle(false);
 
-  const { data: childrenResources } = useResources(connectionId, resource.resource_id, { enabled: expanded });
+  const { data: childrenResources, isLoading: isLoadingChildren } = useResources(connectionId, resource.resource_id, { enabled: expanded });
 
   return (
     <>
@@ -51,6 +52,7 @@ const DirectoryRow = ({ connectionId, resource, leftOffset = 0 }: DirectoryRowPr
         </TableCell>
         <TableCell>{getStatusIndicator(resource.status)}</TableCell>
       </TableRow>
+      {expanded && isLoadingChildren && <SkeletonRow />}
       {expanded && childrenResources?.data?.length && (
         // Two things to notice, because we may be playing with fire if we don't handle this carefully:
         // 1. We don't use ResourceRow because that would create a circular dependency (further research is needed to check how ES modules handle this)
