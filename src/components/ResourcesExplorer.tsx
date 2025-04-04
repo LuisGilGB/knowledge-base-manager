@@ -1,15 +1,17 @@
 'use client';
 
 import { Button } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/checkbox";
+import { KnowledgeBaseProvider } from "@/contexts/KnowledgeBaseContext";
 import { SelectionProvider, useSelection } from "@/contexts/SelectionContext";
 import { useResources } from "@/lib/api/hooks";
 import { Resource } from "@/lib/api/types";
 import { Info, PlusCircle } from "lucide-react";
-import ResourcesTable from "./resources-table/ResourcesTable";
-import { Checkbox } from "./ui/checkbox";
 import { useRef, useState } from "react";
-import CreateKnowledgeBaseModal from "./CreateKnowledgeBaseModal";
 import { toast } from "sonner";
+import CreateKnowledgeBaseModal from "./CreateKnowledgeBaseModal";
+import ResourcesTable from "./resources-table/ResourcesTable";
+import KnowledgeBaseStatus from "./KnowledgeBaseStatus";
 
 interface ResourcesExplorerProps {
   connectionId: string;
@@ -68,46 +70,54 @@ const Toolbar = ({
           onClick={handleCreateKnowledgeBase}
         >
           <PlusCircle className="size-4" />
-          <span className="text-sm">Create Knowledge Base</span>
+          <span>Create Knowledge Base</span>
         </Button>
       </div>
-      {isModalOpen && (
-        <CreateKnowledgeBaseModal
-          isOpen={isModalOpen}
-          onClose={() => setIsModalOpen(false)}
-          connectionId={connectionId}
-          selectedResources={getSelectedResources()}
-        />
-      )}
+
+      <CreateKnowledgeBaseModal
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        connectionId={connectionId}
+        selectedResources={getSelectedResources()}
+      />
     </>
   );
 };
 
 const ResourcesExplorer = ({ connectionId, resourceId }: ResourcesExplorerProps) => {
-  const { data } = useResources(connectionId, resourceId);
+  const { data, error, isLoading } = useResources(connectionId, resourceId);
   const resources = data?.data || [];
   const tableRef = useRef<HTMLTableElement>(null);
 
   return (
-    <SelectionProvider>
-      <div className="space-y-4">
-        <h2 className="text-2xl font-bold">Files and Folders</h2>
-        {resources.length > 0 ? (
-          <div className="space-y-2">
-            <Toolbar
-              resources={resources}
-              connectionId={connectionId}
-            />
-            <ResourcesTable ref={tableRef} connectionId={connectionId} resources={resources} />
-          </div>
-        ) : (
-          <div className="flex flex-col items-center justify-center gap-2 p-4">
-            <Info className="size-8 text-muted-foreground" />
-            <p className="text-muted-foreground">No resources found</p>
-          </div>
-        )}
-      </div>
-    </SelectionProvider>
+    <KnowledgeBaseProvider>
+      <SelectionProvider>
+        <div className="space-y-4">
+          <h2 className="text-2xl font-bold">Files and Folders</h2>
+          <KnowledgeBaseStatus />
+          {resources.length > 0 ? (
+            <div className="space-y-2">
+              <Toolbar
+                resources={resources}
+                connectionId={connectionId}
+              />
+              <ResourcesTable ref={tableRef} connectionId={connectionId} resources={resources} />
+            </div>
+          ) : (
+            <div className="flex flex-col items-center justify-center gap-2 p-4">
+              <Info className="size-8 text-muted-foreground" />
+              <p className="text-muted-foreground">
+                {isLoading
+                  ? "Loading resources..."
+                  : error
+                    ? "Error loading resources"
+                    : "No resources found"}
+              </p>
+            </div>
+          )}
+        </div>
+      </SelectionProvider>
+    </KnowledgeBaseProvider>
   );
 };
 

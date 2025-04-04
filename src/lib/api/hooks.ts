@@ -1,7 +1,7 @@
 /**
  * Custom hooks for API services using SWR
  */
-import useSWR, { SWRConfiguration, SWRResponse } from 'swr';
+import useSWR, { SWRConfiguration, SWRResponse, mutate } from 'swr';
 import useSWRMutation from 'swr/mutation';
 import { AuthService, ConnectionService, KnowledgeBaseService } from './services';
 import { Connection, KnowledgeBase, PaginatedResponse, Resource } from './types';
@@ -29,6 +29,16 @@ export const useConnections = (
 };
 
 /**
+ * Helper function to get the cache key for resources
+ * @param connectionId Connection ID
+ * @param resourceId Resource ID (optional)
+ * @returns Cache key for resources
+ */
+export const getResourcesCacheKey = (connectionId: string, resourceId?: string) => {
+  return ['resources', connectionId, resourceId];
+};
+
+/**
  * Custom hook for fetching resources in a directory
  * @param connectionId Connection ID
  * @param resourceId Resource ID (optional, root if not provided)
@@ -42,7 +52,7 @@ export const useResources = (
 ): SWRResponse<PaginatedResponse<Resource>, Error> => {
   return useSWR(
     enabled && connectionId && AuthService.isAuthenticated()
-      ? ['resources', connectionId, resourceId]
+      ? getResourcesCacheKey(connectionId, resourceId)
       : null,
     async () => {
       const apiClient = AuthService.getApiClient();
@@ -98,7 +108,12 @@ export interface CreateKnowledgeBaseParams {
  * Custom hook for creating a knowledge base using SWR mutation
  * @returns SWR mutation response
  */
-export const useCreateKnowledgeBase = () => {
+export const useCreateKnowledgeBase = (options: {
+  onBeforeCreationRequest?: (params: CreateKnowledgeBaseParams) => void;
+  onCreationCompleted?: (params: CreateKnowledgeBaseParams, knowledgeBase: KnowledgeBase) => void;
+  onBeforeSyncRequest?: (params: CreateKnowledgeBaseParams) => void;
+  onSyncRequested?: (params: CreateKnowledgeBaseParams) => void;
+} = {}) => {
   return useSWRMutation(
     'create-knowledge-base',
     async (_key: string, { arg }: { arg: CreateKnowledgeBaseParams }) => {
@@ -108,18 +123,45 @@ export const useCreateKnowledgeBase = () => {
         throw new Error('Not authenticated');
       }
       const knowledgeBaseService = new KnowledgeBaseService(apiClient);
+
+      if (options.onBeforeCreationRequest) {
+        options.onBeforeCreationRequest(arg);
+      }
       const knowledgeBase = await knowledgeBaseService.createKnowledgeBase(
         connectionId,
         connectionSourceIds,
         name,
         description
       );
-      
+
+      if (options.onCreationCompleted) {
+        options.onCreationCompleted(arg, knowledgeBase);
+      }
+
       if (knowledgeBase) {
+        if (options.onBeforeSyncRequest) {
+          options.onBeforeSyncRequest(arg);
+        }
         // Trigger sync after creation
         await knowledgeBaseService.syncKnowledgeBase(knowledgeBase.knowledge_base_id);
+
+        if (options.onSyncRequested) {
+          options.onSyncRequested(arg);
+        }
+        // Revalidate the resources cache for the connection
+        // This will refresh the resource list in the UI
+        await mutate((key) => {
+          // Match any cache key that starts with ['resources', connectionId]
+          if (Array.isArray(key) &&
+            key.length >= 2 &&
+            key[0] === 'resources' &&
+            key[1] === connectionId) {
+            return true;
+          }
+          return false;
+        });
       }
-      
+
       return knowledgeBase;
     }
   );

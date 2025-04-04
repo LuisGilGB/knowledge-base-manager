@@ -12,18 +12,19 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { useKnowledgeBase } from "@/contexts/KnowledgeBaseContext";
 import { useSelection } from "@/contexts/SelectionContext";
 import { CreateKnowledgeBaseParams, useCreateKnowledgeBase } from "@/lib/api/hooks";
 import { Resource } from "@/lib/api/types";
+import { cn } from "@/lib/utils";
+import { zodResolver } from "@hookform/resolvers/zod";
 import { ChevronDown, ChevronUp, File, Folder } from "lucide-react";
 import { useState } from "react";
-import { toast } from "sonner";
-import { getResourceName } from "./resources-table/utils";
-import { cn } from "@/lib/utils";
-import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "./ui/collapsible";
 import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
+import { toast } from "sonner";
 import { z } from "zod";
+import { getResourceName } from "./resources-table/utils";
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "./ui/collapsible";
 
 const formSchema = z.object({
   name: z.string().min(1, "Name is required"),
@@ -47,8 +48,7 @@ const CreateKnowledgeBaseModal = ({
 }: CreateKnowledgeBaseModalProps) => {
   const [isResourcesOpen, setIsResourcesOpen] = useState(false);
   const { clearSelection } = useSelection();
-
-  const { trigger: createKnowledgeBase, isMutating } = useCreateKnowledgeBase();
+  const { setCurrentKnowledgeBase, setIsSyncing } = useKnowledgeBase();
 
   const {
     register,
@@ -61,6 +61,26 @@ const CreateKnowledgeBaseModal = ({
       name: "",
       description: "",
     },
+  });
+  const { trigger: createKnowledgeBase, isMutating } = useCreateKnowledgeBase({
+    onBeforeCreationRequest: () => {
+      // We close the dialog optimistically, but with a small delay so the effect is not too jarring
+      setTimeout(() => {
+        reset();
+        // TODO: Restore selection in case the creation of the knowledge base fails
+        clearSelection();
+        onClose();
+      }, 100);
+    },
+    onCreationCompleted: (_params, knowledgeBase) => {
+      setCurrentKnowledgeBase(knowledgeBase);
+    },
+    onBeforeSyncRequest: () => {
+      setIsSyncing(true);
+    },
+    onSyncRequested: () => {
+      setIsSyncing(false);
+    }
   });
 
   const onSubmit = async (data: FormData) => {
@@ -79,9 +99,6 @@ const CreateKnowledgeBaseModal = ({
         toast("Success", {
           description: "Knowledge base created successfully",
         });
-        reset();
-        clearSelection();
-        onClose();
       }
     } catch (error) {
       console.error("Failed to create knowledge base:", error);
