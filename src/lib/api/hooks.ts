@@ -2,6 +2,7 @@
  * Custom hooks for API services using SWR
  */
 import useSWR, { SWRConfiguration, SWRResponse } from 'swr';
+import useSWRMutation from 'swr/mutation';
 import { AuthService, ConnectionService, KnowledgeBaseService } from './services';
 import { Connection, KnowledgeBase, PaginatedResponse, Resource } from './types';
 
@@ -80,6 +81,47 @@ export const useKnowledgeBaseResources = (
       return knowledgeBaseService.listKnowledgeBaseResources(knowledgeBaseId, resourcePath);
     },
     config
+  );
+};
+
+/**
+ * Type for knowledge base creation parameters
+ */
+export interface CreateKnowledgeBaseParams {
+  connectionId: string;
+  connectionSourceIds: string[];
+  name: string;
+  description: string;
+}
+
+/**
+ * Custom hook for creating a knowledge base using SWR mutation
+ * @returns SWR mutation response
+ */
+export const useCreateKnowledgeBase = () => {
+  return useSWRMutation(
+    'create-knowledge-base',
+    async (_key: string, { arg }: { arg: CreateKnowledgeBaseParams }) => {
+      const { connectionId, connectionSourceIds, name, description } = arg;
+      const apiClient = AuthService.getApiClient();
+      if (!apiClient) {
+        throw new Error('Not authenticated');
+      }
+      const knowledgeBaseService = new KnowledgeBaseService(apiClient);
+      const knowledgeBase = await knowledgeBaseService.createKnowledgeBase(
+        connectionId,
+        connectionSourceIds,
+        name,
+        description
+      );
+      
+      if (knowledgeBase) {
+        // Trigger sync after creation
+        await knowledgeBaseService.syncKnowledgeBase(knowledgeBase.knowledge_base_id);
+      }
+      
+      return knowledgeBase;
+    }
   );
 };
 

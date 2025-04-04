@@ -18,18 +18,16 @@ interface ResourcesExplorerProps {
 
 const Toolbar = ({
   resources,
-  renderedRows,
   connectionId
 }: {
   resources: Resource[];
-  renderedRows: number;
   connectionId: string;
 }) => {
   const { getSelectedCount, getSelectedResources, selectAll, clearSelection } = useSelection();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const selectedCount = getSelectedCount();
   // The resources count is tricky here, because we haven't loaded all resources at this level due to nested resources.
-  const allSelected = selectedCount >= renderedRows && renderedRows > 0;
+  const allSelected = selectedCount >= resources.length && resources.length > 0;
 
   const handleSelectAllChange = () => {
     if (allSelected) {
@@ -90,8 +88,6 @@ const ResourcesExplorer = ({ connectionId, resourceId }: ResourcesExplorerProps)
   const resources = data?.data || [];
   const tableRef = useRef<HTMLTableElement>(null);
 
-  const renderedRows = tableRef.current?.querySelectorAll('tbody tr').length || 0;
-
   return (
     <SelectionProvider>
       <div className="space-y-4">
@@ -100,7 +96,6 @@ const ResourcesExplorer = ({ connectionId, resourceId }: ResourcesExplorerProps)
           <div className="space-y-2">
             <Toolbar
               resources={resources}
-              renderedRows={renderedRows}
               connectionId={connectionId}
             />
             <ResourcesTable ref={tableRef} connectionId={connectionId} resources={resources} />

@@ -13,7 +13,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { useSelection } from "@/contexts/SelectionContext";
-import { useKnowledgeBaseOperations } from "@/lib/api/hooks";
+import { CreateKnowledgeBaseParams, useCreateKnowledgeBase } from "@/lib/api/hooks";
 import { Resource } from "@/lib/api/types";
 import { ChevronDown, ChevronUp, File, Folder } from "lucide-react";
 import { useState } from "react";
@@ -46,9 +46,9 @@ const CreateKnowledgeBaseModal = ({
   selectedResources,
 }: CreateKnowledgeBaseModalProps) => {
   const [isResourcesOpen, setIsResourcesOpen] = useState(false);
-  const [isCreating, setIsCreating] = useState(false);
-  const { createKnowledgeBase, syncKnowledgeBase } = useKnowledgeBaseOperations();
   const { clearSelection } = useSelection();
+
+  const { trigger: createKnowledgeBase, isMutating } = useCreateKnowledgeBase();
 
   const {
     register,
@@ -65,24 +65,20 @@ const CreateKnowledgeBaseModal = ({
 
   const onSubmit = async (data: FormData) => {
     try {
-      setIsCreating(true);
-
       const resourceIds = selectedResources.map(resource => resource.resource_id);
-
-      const knowledgeBase = await createKnowledgeBase(
+      const params: CreateKnowledgeBaseParams = {
         connectionId,
-        resourceIds,
-        data.name,
-        data.description
-      );
+        connectionSourceIds: resourceIds,
+        name: data.name,
+        description: data.description
+      };
 
-      if (knowledgeBase) {
-        await syncKnowledgeBase(knowledgeBase.knowledge_base_id);
+      const result = await createKnowledgeBase(params);
 
+      if (result) {
         toast("Success", {
           description: "Knowledge base created successfully",
         });
-
         reset();
         clearSelection();
         onClose();
@@ -92,8 +88,6 @@ const CreateKnowledgeBaseModal = ({
       toast("Error", {
         description: "Failed to create knowledge base. Please try again.",
       });
-    } finally {
-      setIsCreating(false);
     }
   };
 
@@ -188,15 +182,15 @@ const CreateKnowledgeBaseModal = ({
               type="button"
               variant="outline"
               onClick={onClose}
-              disabled={isCreating}
+              disabled={isMutating}
             >
               Cancel
             </Button>
             <Button
               type="submit"
-              disabled={isCreating}
+              disabled={isMutating}
             >
-              {isCreating ? "Creating..." : "Create"}
+              {isMutating ? "Creating..." : "Create"}
             </Button>
           </DialogFooter>
         </form>
