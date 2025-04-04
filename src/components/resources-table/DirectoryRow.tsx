@@ -1,14 +1,18 @@
 'use client';
 
-import { DirectoryResource } from "@/lib/api/types";
-import { TableCell, TableRow } from "../ui/table";
 import { Button } from "@/components/ui/button";
-import { ChevronDown, ChevronRight, Folder } from "lucide-react";
-import { getResourceName, getStatusIndicator } from "./utils";
+import { TableCell } from "@/components/ui/table";
+import { useSelection } from "@/contexts/SelectionContext";
 import useToggle from "@/hooks/useToggle";
 import { useResources } from "@/lib/api/hooks";
+import { DirectoryResource } from "@/lib/api/types";
+import { ChevronDown, ChevronRight, Folder } from "lucide-react";
+import { TableRow } from "../ui/table";
+import SelectorCell from "./cells/SelectorCell";
+import StatusCell from "./cells/StatusCell";
 import FileRow from "./FileRow";
 import SkeletonRow from "./SkeletonRow";
+import { getResourceName } from "./utils";
 
 interface DirectoryRowProps {
   connectionId: string;
@@ -18,12 +22,17 @@ interface DirectoryRowProps {
 
 const DirectoryRow = ({ connectionId, resource, leftOffset = 0 }: DirectoryRowProps) => {
   const [expanded, toggleExpanded] = useToggle(false);
+  const { isSelected } = useSelection();
+  const selected = isSelected(resource.resource_id);
 
   const { data: childrenResources, isLoading: isLoadingChildren } = useResources(connectionId, resource.resource_id, { enabled: expanded });
 
   return (
     <>
-      <TableRow key={resource.resource_id}>
+      <TableRow key={resource.resource_id} className={selected ? "bg-muted/50" : ""}>
+        <SelectorCell
+          resource={resource}
+        />
         <TableCell>
           <div className="flex items-center">
             {Array.from({ length: leftOffset }).map((_, index) => (
@@ -50,7 +59,7 @@ const DirectoryRow = ({ connectionId, resource, leftOffset = 0 }: DirectoryRowPr
             <span>{getResourceName(resource)}</span>
           </div>
         </TableCell>
-        <TableCell>{getStatusIndicator(resource.status)}</TableCell>
+        <StatusCell resource={resource} />
       </TableRow>
       {expanded && isLoadingChildren && <SkeletonRow />}
       {expanded && childrenResources?.data?.length && (

@@ -1,9 +1,12 @@
 'use client';
 
+import { useSelection } from "@/contexts/SelectionContext";
 import { FileResource } from "@/lib/api/types";
-import { TableCell, TableRow } from "../ui/table";
 import { File } from "lucide-react";
-import { getResourceName, getStatusIndicator } from "./utils";
+import { TableCell, TableRow } from "../ui/table";
+import SelectorCell from "./cells/SelectorCell";
+import StatusCell from "./cells/StatusCell";
+import { getResourceName } from "./utils";
 
 interface FileRowProps {
   connectionId: string;
@@ -12,8 +15,13 @@ interface FileRowProps {
 }
 
 const FileRow = ({ resource, leftOffset = 0 }: FileRowProps) => {
+  const { isSelected } = useSelection();
+  const selected = isSelected(resource.resource_id);
   return (
-    <TableRow key={resource.resource_id}>
+    <TableRow className={selected ? "bg-muted/50" : ""}>
+      <SelectorCell
+        resource={resource}
+      />
       <TableCell>
         <div className="flex items-center">
           <span className="block w-6" />
@@ -24,7 +32,7 @@ const FileRow = ({ resource, leftOffset = 0 }: FileRowProps) => {
           <span>{getResourceName(resource)}</span>
         </div>
       </TableCell>
-      <TableCell>{getStatusIndicator(resource.status)}</TableCell>
+      <StatusCell resource={resource} />
     </TableRow>
   );
 };
