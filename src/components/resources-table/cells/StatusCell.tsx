@@ -1,7 +1,6 @@
 'use client';
 
 import { TableCell } from "@/components/ui/table";
-import { getStatusIndicator } from "../utils";
 import { Resource } from "@/lib/api/types";
 import { useKnowledgeBase } from "@/contexts/KnowledgeBaseContext";
 import { Badge } from "@/components/ui/badge";
@@ -30,26 +29,30 @@ const statusConfig = {
     icon: XCircle,
     variant: "secondary" as const,
     className: "text-red-600 bg-red-50 border-red-200"
+  },
+  default: {
+    label: "Not indexed",
+    icon: null,
+    variant: "secondary" as const,
+    className: "text-gray-600 bg-gray-50 border-gray-200"
   }
 };
 
 const StatusCell = ({ resource }: StatusCellProps) => {
   const { resourceStatusMap } = useKnowledgeBase();
   const resourceStatus = resourceStatusMap[resource.resource_id];
-  const Icon = resourceStatus ? statusConfig[resourceStatus].icon : null;
+  const config = resourceStatus ? statusConfig[resourceStatus] : statusConfig.default;
+  const Icon = config.icon;
 
   return (
     <TableCell className="text-right">
-      {resourceStatus && (
-        <Badge
-          variant={statusConfig[resourceStatus].variant}
-          className={cn("gap-1 text-xs font-normal", statusConfig[resourceStatus].className)}
-        >
-          {Icon && <Icon className="size-3" />}
-          {statusConfig[resourceStatus].label}
-        </Badge>
-      )}
-      {!resourceStatus && getStatusIndicator(resource.status)}
+      <Badge
+        variant={config.variant}
+        className={cn("gap-1 text-xs font-normal", config.className)}
+      >
+        {Icon && <Icon className="size-3" />}
+        {config.label}
+      </Badge>
     </TableCell>
   );
 };
