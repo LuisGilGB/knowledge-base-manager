@@ -39,3 +39,6 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# aux-docs (task definition, API specs, jsons, etc.). Useful for quick reference check but irrelevant to submit the project
+/aux-docs
