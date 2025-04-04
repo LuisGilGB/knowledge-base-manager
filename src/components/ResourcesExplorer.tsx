@@ -1,8 +1,7 @@
 'use client';
 
 import { useResources } from "@/lib/api/hooks";
-import ResourcesTable from "./ResourcesTable";
-import { useRouter } from "next/navigation";
+import ResourcesTable from "./resources-table/ResourcesTable";
 
 interface ResourcesExplorerProps {
   connectionId: string;
@@ -10,7 +9,6 @@ interface ResourcesExplorerProps {
 }
 
 const ResourcesExplorer = ({ connectionId, resourceId }: ResourcesExplorerProps) => {
-  const router = useRouter();
   const { data } = useResources(connectionId, resourceId);
   const resources = data?.data;
 
@@ -19,7 +17,7 @@ const ResourcesExplorer = ({ connectionId, resourceId }: ResourcesExplorerProps)
       <h2 className="text-2xl font-bold">Files and Folders</h2>
 
       {resources ? (
-        <ResourcesTable resources={resources} onDirectoryDoubleClick={(resource) => router.push(`/${connectionId}/folders/${resource.resource_id}`)} />
+        <ResourcesTable connectionId={connectionId} resources={resources} />
       ) : (
         <p>Loading...</p>
       )}

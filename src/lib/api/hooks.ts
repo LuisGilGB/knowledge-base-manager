@@ -31,16 +31,16 @@ export const useConnections = (
  * Custom hook for fetching resources in a directory
  * @param connectionId Connection ID
  * @param resourceId Resource ID (optional, root if not provided)
- * @param config SWR configuration
+ * @param options SWR configuration and conditionalFlagging
  * @returns SWR response with resources
  */
 export const useResources = (
   connectionId: string | null,
   resourceId?: string,
-  config?: SWRConfiguration
+  { enabled = true, ...config }: SWRConfiguration & { enabled?: boolean } = {}
 ): SWRResponse<PaginatedResponse<Resource>, Error> => {
   return useSWR(
-    connectionId && AuthService.isAuthenticated()
+    enabled && connectionId && AuthService.isAuthenticated()
       ? ['resources', connectionId, resourceId]
       : null,
     async () => {
