@@ -40,7 +40,7 @@ const PrivateLayout = ({
   return (
     <SidebarProvider>
       <ConnectionsSidebar />
-      <main className="flex-1">{children}</main>
+      <main className="flex-1 p-4 overflow-x-hidden">{children}</main>
     </SidebarProvider>
   );
 }
