@@ -16,6 +16,7 @@ interface SelectionContextType {
 const SelectionContext = createContext<SelectionContextType | undefined>(undefined);
 
 export const SelectionProvider = ({ children }: { children: ReactNode }) => {
+  // Could we use a Set instead of an object? Perhaps, but given we have strings as keys, it's not such a big deal.
   const [selectedResources, setSelectedResources] = useState<Record<string, Resource>>({});
 
   const toggleSelection = (resource: Resource) => {
