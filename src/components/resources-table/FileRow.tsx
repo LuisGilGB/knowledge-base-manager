@@ -14,14 +14,13 @@ interface FileRowProps {
 const FileRow = ({ resource, leftOffset = 0 }: FileRowProps) => {
   return (
     <TableRow key={resource.resource_id}>
-      <TableCell className="w-[40px] p-0 pl-2">
-        {Array.from({ length: leftOffset }).map((_, index) => (
-          <span key={index} className="inline-block w-[40px]" />
-        ))}
-      </TableCell>
       <TableCell>
-        <div className="flex items-center gap-2">
-          <File className="h-4 w-4" />
+        <div className="flex items-center">
+          <span className="block w-6" />
+          {Array.from({ length: leftOffset }).map((_, index) => (
+            <span key={index} className="block w-6" />
+          ))}
+          <File className="size-4 mx-2" />
           <span>{getResourceName(resource)}</span>
         </div>
       </TableCell>

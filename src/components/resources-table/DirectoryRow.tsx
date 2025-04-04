@@ -23,31 +23,29 @@ const DirectoryRow = ({ connectionId, resource, leftOffset = 0 }: DirectoryRowPr
   return (
     <>
       <TableRow key={resource.resource_id}>
-        <TableCell className="w-[40px] p-0 pl-2">
-          {Array.from({ length: leftOffset }).map((_, index) => (
-            <span key={index} className="inline-block w-[40px]" />
-          ))}
-          {resource.inode_type === 'directory' ? (
-            <Button
-              variant="ghost"
-              size="icon"
-              className="h-6 w-6"
-              onClick={(e) => {
-                e.stopPropagation();
-                e.preventDefault();
-                toggleExpanded();
-              }}
-            >
-              {expanded ?
-                <ChevronDown className="h-4 w-4" /> :
-                <ChevronRight className="h-4 w-4" />
-              }
-            </Button>
-          ) : null}
-        </TableCell>
         <TableCell>
-          <div className="flex items-center gap-2">
-            <Folder className="h-4 w-4 text-blue-500" />
+          <div className="flex items-center">
+            {Array.from({ length: leftOffset }).map((_, index) => (
+              <span key={index} className="block w-6" />
+            ))}
+            {resource.inode_type === 'directory' ? (
+              <Button
+                variant="ghost"
+                size="icon"
+                className="size-6"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  e.preventDefault();
+                  toggleExpanded();
+                }}
+              >
+                {expanded ?
+                  <ChevronDown className="h-4 w-4" /> :
+                  <ChevronRight className="h-4 w-4" />
+                }
+              </Button>
+            ) : null}
+            <Folder className="size-4 mx-2 text-blue-500" />
             <span>{getResourceName(resource)}</span>
           </div>
         </TableCell>
