@@ -1,11 +1,17 @@
+
 'use client';
 
-import { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
-import FileExplorer from "@/components/FileExplorer";
-import { AuthService } from '@/lib/api/services';
+import { SidebarProvider } from "@/components/ui/sidebar";
+import ConnectionsSidebar from "@/components/ConnectionsSidebar";
+import { useRouter } from "next/navigation";
+import { useEffect, useState } from "react";
+import { AuthService } from "@/lib/api/services";
 
-const Home = () => {
+const PrivateLayout = ({
+  children,
+}: Readonly<{
+  children: React.ReactNode;
+}>) => {
   const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null);
   const router = useRouter();
 
@@ -13,7 +19,7 @@ const Home = () => {
     const checkAuth = async () => {
       const isLoggedIn = AuthService.isAuthenticated();
       setIsAuthenticated(isLoggedIn);
-      
+
       if (!isLoggedIn) {
         router.push('/login');
       }
@@ -31,12 +37,12 @@ const Home = () => {
     );
   }
 
-  // If authenticated, show the FileExplorer
   return (
-    <div className="min-h-screen">
-      <FileExplorer />
-    </div>
+    <SidebarProvider>
+      <ConnectionsSidebar />
+      <main className="flex-1">{children}</main>
+    </SidebarProvider>
   );
-};
+}
 
-export default Home;
+export default PrivateLayout;

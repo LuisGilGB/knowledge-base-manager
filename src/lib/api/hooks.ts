@@ -3,7 +3,7 @@
  */
 import useSWR, { SWRConfiguration, SWRResponse } from 'swr';
 import { AuthService, ConnectionService, KnowledgeBaseService } from './services';
-import { Connection, KnowledgeBase, Resource } from './types';
+import { Connection, KnowledgeBase, PaginatedResponse, Resource } from './types';
 
 /**
  * Custom hook for fetching Google Drive connections
@@ -38,7 +38,7 @@ export const useResources = (
   connectionId: string | null,
   resourceId?: string,
   config?: SWRConfiguration
-): SWRResponse<Resource[], Error> => {
+): SWRResponse<PaginatedResponse<Resource>, Error> => {
   return useSWR(
     connectionId && AuthService.isAuthenticated()
       ? ['resources', connectionId, resourceId]

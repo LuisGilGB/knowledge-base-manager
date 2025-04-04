@@ -2,7 +2,7 @@
  * API services for Google Drive connection and Knowledge Base operations
  */
 import { ApiClient, getAuthHeaders } from './client';
-import { AuthCredentials, Connection, KnowledgeBase, Resource } from './types';
+import { AuthCredentials, Connection, KnowledgeBase, PaginatedResponse, Resource } from './types';
 
 /**
  * Service for authentication operations
@@ -112,7 +112,7 @@ export class ConnectionService {
    * @param resourceId Resource ID of the directory (optional, root if not provided)
    * @returns List of resources in the directory
    */
-  async listResources(connectionId: string, resourceId?: string): Promise<Resource[]> {
+  async listResources(connectionId: string, resourceId?: string): Promise<PaginatedResponse<Resource>> {
     try {
       const endpoint = `/connections/${connectionId}/resources/children`;
       const queryParams: Record<string, string> = {};
@@ -121,7 +121,7 @@ export class ConnectionService {
         queryParams.resource_id = resourceId;
       }
 
-      return await this.client.get<Resource[]>(endpoint, queryParams);
+      return await this.client.get<PaginatedResponse<Resource>>(endpoint, queryParams);
     } catch (error) {
       console.error('Failed to list resources:', error);
       throw error;

@@ -16,6 +16,12 @@ export interface AuthHeaders {
   Authorization: string;
 }
 
+export interface PaginatedResponse<T> {
+  data: T[];
+  current_cursor: number | null;
+  next_cursor: number | null;
+}
+
 // Connection types
 export interface Connection {
   connection_id: string;
