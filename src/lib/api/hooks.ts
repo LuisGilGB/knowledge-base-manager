@@ -76,7 +76,7 @@ export const useResources = (
 export const useKnowledgeBaseResources = (
   knowledgeBaseId: string | null,
   resourcePath: string = '/',
-  config?: SWRConfiguration
+  config: SWRConfiguration = {}
 ): SWRResponse<PaginatedResponse<Resource>, Error> => {
   return useSWR(
     knowledgeBaseId && AuthService.isAuthenticated()

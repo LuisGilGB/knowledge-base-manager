@@ -48,7 +48,11 @@ const CreateKnowledgeBaseModal = ({
 }: CreateKnowledgeBaseModalProps) => {
   const [isResourcesOpen, setIsResourcesOpen] = useState(false);
   const { clearSelection } = useSelection();
-  const { setCurrentKnowledgeBase, setIsSyncing } = useKnowledgeBase();
+  const {
+    setCurrentKnowledgeBase,
+    setIsSyncing,
+    setResourcesAsPending
+  } = useKnowledgeBase();
 
   const {
     register,
@@ -63,7 +67,10 @@ const CreateKnowledgeBaseModal = ({
     },
   });
   const { trigger: createKnowledgeBase, isMutating } = useCreateKnowledgeBase({
-    onBeforeCreationRequest: () => {
+    onBeforeCreationRequest: (params) => {
+      // Set the selected resources as pending in the status map
+      setResourcesAsPending(params.connectionSourceIds);
+
       // We close the dialog optimistically, but with a small delay so the effect is not too jarring
       setTimeout(() => {
         reset();

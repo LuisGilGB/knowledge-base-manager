@@ -4,6 +4,9 @@ import { useKnowledgeBaseResources } from "@/lib/api/hooks";
 import { KnowledgeBase, Resource } from "@/lib/api/types";
 import { createContext, useContext, useState, ReactNode, useMemo } from "react";
 
+export type ResourceStatus = Resource['status'];
+export type ResourceStatusMap = Record<string, ResourceStatus>;
+
 interface KnowledgeBaseContextType {
   currentKnowledgeBase: KnowledgeBase | null;
   setCurrentKnowledgeBase: (knowledgeBase: KnowledgeBase | null) => void;
@@ -12,6 +15,9 @@ interface KnowledgeBaseContextType {
   knowledgeBaseResources: Resource[];
   isLoadingResources: boolean;
   resourcesError: Error | null;
+  resourceStatusMap: ResourceStatusMap;
+  setResourcesAsPending: (resourceIds: string[]) => void;
+  clearResourceStatus: () => void;
 }
 
 const KnowledgeBaseContext = createContext<KnowledgeBaseContextType | undefined>(undefined);
@@ -19,6 +25,7 @@ const KnowledgeBaseContext = createContext<KnowledgeBaseContextType | undefined>
 export const KnowledgeBaseProvider = ({ children }: { children: ReactNode }) => {
   const [currentKnowledgeBase, setCurrentKnowledgeBase] = useState<KnowledgeBase | null>(null);
   const [isSyncing, setIsSyncing] = useState(false);
+  const [resourceStatusMap, setResourceStatusMap] = useState<ResourceStatusMap>({});
 
   const { data: { data: resources } = { data: [] }, error, isLoading } = useKnowledgeBaseResources(
     currentKnowledgeBase?.knowledge_base_id || null,
@@ -30,9 +37,32 @@ export const KnowledgeBaseProvider = ({ children }: { children: ReactNode }) => 
       revalidateOnFocus: !isSyncing,
       // Keep previous data while loading new data
       keepPreviousData: true,
+      onSuccess: (data) => {
+        setResourceStatusMap(prevMap => {
+          const newMap = { ...prevMap };
+          data.data.forEach((resource: Resource) => {
+            newMap[resource.resource_id] = resource.status;
+          });
+          return newMap;
+        });
+      }
     }
   );
-  console.log({ resources, isLoading, error });
+
+  const setResourcesAsPending = (resourceIds: string[]) => {
+    setResourceStatusMap(prevMap => {
+      const newMap = { ...prevMap };
+      resourceIds.forEach(id => {
+        newMap[id] = 'pending';
+      });
+      return newMap;
+    });
+  };
+
+  const clearResourceStatus = () => {
+    setResourceStatusMap({});
+  };
+
   const contextValue = useMemo(() => ({
     currentKnowledgeBase,
     setCurrentKnowledgeBase,
@@ -41,12 +71,16 @@ export const KnowledgeBaseProvider = ({ children }: { children: ReactNode }) => 
     knowledgeBaseResources: resources || [],
     isLoadingResources: isLoading,
     resourcesError: error || null,
+    resourceStatusMap,
+    setResourcesAsPending,
+    clearResourceStatus
   }), [
     currentKnowledgeBase,
     isSyncing,
     resources,
     isLoading,
-    error
+    error,
+    resourceStatusMap
   ]);
 
   return (
