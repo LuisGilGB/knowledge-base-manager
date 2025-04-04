@@ -17,6 +17,7 @@ interface FileRowProps {
 const FileRow = ({ resource, leftOffset = 0 }: FileRowProps) => {
   const { isSelected } = useSelection();
   const selected = isSelected(resource.resource_id);
+
   return (
     <TableRow className={selected ? "bg-muted/50" : ""}>
       <SelectorCell
