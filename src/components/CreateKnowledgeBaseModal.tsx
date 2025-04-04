@@ -21,6 +21,16 @@ import { toast } from "sonner";
 import { getResourceName } from "./resources-table/utils";
 import { cn } from "@/lib/utils";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "./ui/collapsible";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { z } from "zod";
+
+const formSchema = z.object({
+  name: z.string().min(1, "Name is required"),
+  description: z.string().min(1, "Description is required"),
+});
+
+type FormData = z.infer<typeof formSchema>;
 
 interface CreateKnowledgeBaseModalProps {
   isOpen: boolean;
@@ -35,48 +45,45 @@ const CreateKnowledgeBaseModal = ({
   connectionId,
   selectedResources,
 }: CreateKnowledgeBaseModalProps) => {
-  const [name, setName] = useState("");
-  const [description, setDescription] = useState("");
-  const [isCreating, setIsCreating] = useState(false);
   const [isResourcesOpen, setIsResourcesOpen] = useState(false);
+  const [isCreating, setIsCreating] = useState(false);
   const { createKnowledgeBase, syncKnowledgeBase } = useKnowledgeBaseOperations();
   const { clearSelection } = useSelection();
 
-  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
+  const {
+    register,
+    handleSubmit,
+    formState: { errors },
+    reset,
+  } = useForm<FormData>({
+    resolver: zodResolver(formSchema),
+    defaultValues: {
+      name: "",
+      description: "",
+    },
+  });
 
-    if (!name.trim()) {
-      toast("Error", {
-        description: "Please enter a name for the knowledge base",
-      });
-      return;
-    }
-
+  const onSubmit = async (data: FormData) => {
     try {
       setIsCreating(true);
 
-      // Extract resource IDs from selected resources
       const resourceIds = selectedResources.map(resource => resource.resource_id);
 
-      // Create the knowledge base
       const knowledgeBase = await createKnowledgeBase(
         connectionId,
         resourceIds,
-        name,
-        description
+        data.name,
+        data.description
       );
 
       if (knowledgeBase) {
-        // Trigger sync to start indexing
         await syncKnowledgeBase(knowledgeBase.knowledge_base_id);
 
         toast("Success", {
           description: "Knowledge base created successfully",
         });
 
-        // Reset form and close modal
-        setName("");
-        setDescription("");
+        reset();
         clearSelection();
         onClose();
       }
@@ -101,7 +108,7 @@ const CreateKnowledgeBaseModal = ({
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="sm:max-w-[425px]">
-        <form onSubmit={handleSubmit}>
+        <form onSubmit={handleSubmit(onSubmit)}>
           <DialogHeader>
             <DialogTitle>Create Knowledge Base</DialogTitle>
             <DialogDescription>
@@ -110,25 +117,27 @@ const CreateKnowledgeBaseModal = ({
           </DialogHeader>
           <div className="grid gap-4 py-4">
             <div className="grid gap-2">
-              <Label htmlFor="name">Name</Label>
+              <Label htmlFor="new-kb-name">Name</Label>
               <Input
-                id="name"
-                value={name}
-                onChange={(e) => setName(e.target.value)}
+                id="new-kb-name"
+                {...register("name")}
                 placeholder="Enter knowledge base name"
-                required
               />
+              {errors.name && (
+                <p className="text-xs text-red-500">{errors.name.message}</p>
+              )}
             </div>
             <div className="grid gap-2">
-              <Label htmlFor="description">Description</Label>
+              <Label htmlFor="new-kb-description">Description</Label>
               <Textarea
-                id="description"
-                value={description}
-                required
-                onChange={(e) => setDescription(e.target.value)}
+                id="new-kb-description"
+                {...register("description")}
                 placeholder="Enter description"
                 rows={3}
               />
+              {errors.description && (
+                <p className="text-xs text-red-500">{errors.description.message}</p>
+              )}
             </div>
 
             <Collapsible

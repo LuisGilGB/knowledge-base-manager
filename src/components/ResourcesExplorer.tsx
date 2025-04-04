@@ -52,7 +52,7 @@ const Toolbar = ({
 
   return (
     <>
-      <div className="flex items-center justify-between py-4">
+      <div className="flex items-center justify-between py-1">
         <div className="flex items-center space-x-2">
           <Checkbox
             checked={allSelected}
@@ -97,14 +97,14 @@ const ResourcesExplorer = ({ connectionId, resourceId }: ResourcesExplorerProps)
       <div className="space-y-4">
         <h2 className="text-2xl font-bold">Files and Folders</h2>
         {resources.length > 0 ? (
-          <>
+          <div className="space-y-2">
             <Toolbar
               resources={resources}
               renderedRows={renderedRows}
               connectionId={connectionId}
             />
             <ResourcesTable ref={tableRef} connectionId={connectionId} resources={resources} />
-          </>
+          </div>
         ) : (
           <div className="flex flex-col items-center justify-center gap-2 p-4">
             <Info className="size-8 text-muted-foreground" />
