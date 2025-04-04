@@ -1,14 +1,14 @@
-import ConnectionFileExplorer from "@/components/ConnectionFileExplorer";
+import ResourcesExplorer from "@/components/ResourcesExplorer";
 
 const Page = async ({
   params,
 }: {
   params: Promise<{ connectionId: string }>
 }) => {
-  const { connectionId } = await params
+  const { connectionId } = await params;
   return (
     <div>
-      <ConnectionFileExplorer connectionId={connectionId} />
+      <ResourcesExplorer connectionId={connectionId} />
     </div>
   )
 }
