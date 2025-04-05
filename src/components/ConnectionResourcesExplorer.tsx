@@ -2,7 +2,6 @@
 
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
-import { KnowledgeBaseProvider } from "@/contexts/KnowledgeBaseContext";
 import { SelectionProvider, useSelection } from "@/contexts/SelectionContext";
 import { Resource } from "@/domain/Resource";
 import { useInfiniteResources } from "@/lib/api/hooks";
@@ -99,24 +98,23 @@ const ConnectionResourcesExplorer = ({ connectionId, className }: ConnectionReso
   const tableRef = useRef<HTMLTableElement>(null);
 
   return (
-    <KnowledgeBaseProvider>
-      <SelectionProvider>
-        {resources.length > 0 ? (
-          <div className={cn("flex flex-col gap-y-2 overflow-hidden", className)}>
-            <Toolbar
-              resources={resources}
-              connectionId={connectionId}
-            />
-            <ConnectionResourcesTable ref={tableRef} connectionId={connectionId} resources={resources} />
-            {
-              // TODO: I'm getting 500 errors when sending the cursor as a query parameter of the resources request,
-              // so for now we're not going to support infinite scrolling.
-              //
-              // The Load more button is a provisional solution to verify the requests of the following pages work as expected
-              // without triggering huge amounts of requests while trying. It's expected to be replaces by a scroll handler or
-              // an interceptor.
-            }
-            {/*hasNextPage && (
+    <SelectionProvider>
+      {resources.length > 0 ? (
+        <div className={cn("flex flex-col gap-y-2 overflow-hidden", className)}>
+          <Toolbar
+            resources={resources}
+            connectionId={connectionId}
+          />
+          <ConnectionResourcesTable ref={tableRef} connectionId={connectionId} resources={resources} />
+          {
+            // TODO: I'm getting 500 errors when sending the cursor as a query parameter of the resources request,
+            // so for now we're not going to support infinite scrolling.
+            //
+            // The Load more button is a provisional solution to verify the requests of the following pages work as expected
+            // without triggering huge amounts of requests while trying. It's expected to be replaces by a scroll handler or
+            // an interceptor.
+          }
+          {/*hasNextPage && (
               <div className="flex justify-center py-2">
                 <Button
                   variant="outline"
@@ -136,17 +134,16 @@ const ConnectionResourcesExplorer = ({ connectionId, className }: ConnectionReso
                 </Button>
               </div>
             )*/}
-          </div>
-        ) : (
-          <div className={cn("h-full flex flex-col items-center justify-center gap-2 p-4", className)}>
-            <Info className="size-8 text-muted-foreground" />
-            <p className="text-muted-foreground">
-              No resources found
-            </p>
-          </div>
-        )}
-      </SelectionProvider>
-    </KnowledgeBaseProvider>
+        </div>
+      ) : (
+        <div className={cn("h-full flex flex-col items-center justify-center gap-2 p-4", className)}>
+          <Info className="size-8 text-muted-foreground" />
+          <p className="text-muted-foreground">
+            No resources found
+          </p>
+        </div>
+      )}
+    </SelectionProvider>
   );
 };
 

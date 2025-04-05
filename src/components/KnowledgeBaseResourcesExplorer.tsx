@@ -1,6 +1,5 @@
 'use client';
 
-import { KnowledgeBaseProvider } from "@/contexts/KnowledgeBaseContext";
 import { SelectionProvider } from "@/contexts/SelectionContext";
 import { useInfiniteKnowledgeBaseResources } from "@/lib/api/hooks";
 import { cn } from "@/lib/utils";
@@ -28,22 +27,20 @@ const KnowledgeBaseResourcesExplorer = ({ knowledgeBaseId, className }: Knowledg
   const tableRef = useRef<HTMLTableElement>(null);
 
   return (
-    <KnowledgeBaseProvider>
-      <SelectionProvider>
-        {resources.length > 0 ? (
-          <div className={cn("flex flex-col gap-y-2 overflow-hidden", className)}>
-            <KnowledgeBaseResourcesTable ref={tableRef} knowledgeBaseId={knowledgeBaseId} resources={resources} />
-          </div>
-        ) : (
-          <div className={cn("h-full flex flex-col items-center justify-center gap-2 p-4", className)}>
-            <Info className="size-8 text-muted-foreground" />
-            <p className="text-muted-foreground">
-              No resources found
-            </p>
-          </div>
-        )}
-      </SelectionProvider>
-    </KnowledgeBaseProvider>
+    <SelectionProvider>
+      {resources.length > 0 ? (
+        <div className={cn("flex flex-col gap-y-2 overflow-hidden", className)}>
+          <KnowledgeBaseResourcesTable ref={tableRef} knowledgeBaseId={knowledgeBaseId} resources={resources} />
+        </div>
+      ) : (
+        <div className={cn("h-full flex flex-col items-center justify-center gap-2 p-4", className)}>
+          <Info className="size-8 text-muted-foreground" />
+          <p className="text-muted-foreground">
+            No resources found
+          </p>
+        </div>
+      )}
+    </SelectionProvider>
   );
 };
 

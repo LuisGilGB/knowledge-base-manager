@@ -4,12 +4,11 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { TableCell } from "@/components/ui/table";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
-import { ResourceStatus } from "@/contexts/KnowledgeBaseContext";
 import { Resource } from "@/domain/Resource";
 import { useDeindexResource } from "@/lib/api/hooks";
 import { cn } from "@/lib/utils";
 import { CheckCircle, Clock, PinOff, XCircle } from "lucide-react";
-import { ComponentProps } from "react";
+import { ComponentProps, useCallback } from "react";
 import { toast } from "sonner";
 
 interface StatusCellProps {
@@ -17,7 +16,7 @@ interface StatusCellProps {
   resource: Resource;
 }
 
-const statusConfig: Record<ResourceStatus | 'default', { label: string; icon: React.ComponentType<{ className?: string }> | null; variant: ComponentProps<typeof Badge>['variant']; className: string }> = {
+const statusConfig: Record<NonNullable<Resource['status']> | 'default', { label: string; icon: React.ComponentType<{ className?: string }> | null; variant: ComponentProps<typeof Badge>['variant']; className: string }> = {
   pending: {
     label: "Pending...",
     icon: Clock,
@@ -53,11 +52,7 @@ const statusConfig: Record<ResourceStatus | 'default', { label: string; icon: Re
 const StatusCell = ({ knowledgeBaseId, resource }: StatusCellProps) => {
   const { trigger: deindexResource, isMutating: isDeindexing } = useDeindexResource();
 
-  const isFile = resource.inode_type === 'file';
-  const config = statusConfig[resource.status!] || statusConfig.default;
-  const Icon = config.icon;
-
-  const handleDeindex = async (e: React.MouseEvent) => {
+  const handleDeindex = useCallback(async (e: React.MouseEvent) => {
     e.stopPropagation(); // Prevent row click event
 
     try {
@@ -72,7 +67,18 @@ const StatusCell = ({ knowledgeBaseId, resource }: StatusCellProps) => {
       console.error("Failed to de-index resource:", error);
       toast.error("Failed to de-index resource");
     }
-  };
+  }, [deindexResource, knowledgeBaseId, resource.resource_id, resource.inode_path.path]);
+
+  const isFile = resource.inode_type === 'file';
+
+  if (!isFile) {
+    return (
+      <TableCell className="text-right"></TableCell>
+    );
+  }
+
+  const config = statusConfig[resource.status!] || statusConfig.default;
+  const Icon = config.icon;
 
   return (
     <TableCell className="text-right">
@@ -84,7 +90,7 @@ const StatusCell = ({ knowledgeBaseId, resource }: StatusCellProps) => {
           {Icon && <Icon className="size-3" />}
           {config.label}
         </Badge>
-        {isFile && resource.status === 'indexed' && (
+        {resource.status === 'indexed' && (
           <Tooltip>
             <TooltipTrigger asChild>
               <Button
