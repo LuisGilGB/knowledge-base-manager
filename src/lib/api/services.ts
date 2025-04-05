@@ -113,15 +113,24 @@ export class ConnectionService {
    * List resources (files/folders) in a directory
    * @param connectionId Connection ID
    * @param resourceId Resource ID of the directory (optional, root if not provided)
+   * @param cursor Pagination cursor (optional)
    * @returns List of resources in the directory
    */
-  async listResources(connectionId: string, resourceId?: string): Promise<PaginatedResponse<Resource>> {
+  async listResources(
+    connectionId: string, 
+    resourceId?: string, 
+    cursor?: string
+  ): Promise<PaginatedResponse<Resource>> {
     try {
       const endpoint = `/connections/${connectionId}/resources/children`;
       const queryParams: Record<string, string> = {};
 
       if (resourceId) {
         queryParams.resource_id = resourceId;
+      }
+      
+      if (cursor) {
+        queryParams.cursor = cursor;
       }
 
       return await this.client.get<PaginatedResponse<Resource>>(endpoint, queryParams);
@@ -224,18 +233,25 @@ export class KnowledgeBaseService {
    * List resources in a Knowledge Base
    * @param knowledgeBaseId Knowledge Base ID
    * @param resourcePath Path to the directory (default: root)
+   * @param cursor Pagination cursor (optional)
    * @returns List of resources in the Knowledge Base
    */
   async listKnowledgeBaseResources(
     knowledgeBaseId: string,
-    resourcePath: string = '/'
+    resourcePath: string = '/',
+    cursor?: string
   ): Promise<PaginatedResponse<Resource>> {
     try {
       const endpoint = `/knowledge_bases/${knowledgeBaseId}/resources/children`;
-
-      return await this.client.get<PaginatedResponse<Resource>>(endpoint, {
+      const queryParams: Record<string, string> = {
         resource_path: resourcePath,
-      });
+      };
+      
+      if (cursor) {
+        queryParams.cursor = cursor;
+      }
+
+      return await this.client.get<PaginatedResponse<Resource>>(endpoint, queryParams);
     } catch (error) {
       console.error(`Failed to list Knowledge Base resources for ${knowledgeBaseId}:`, error);
       throw error;

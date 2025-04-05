@@ -4,9 +4,9 @@ import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { KnowledgeBaseProvider } from "@/contexts/KnowledgeBaseContext";
 import { SelectionProvider, useSelection } from "@/contexts/SelectionContext";
-import { useResources } from "@/lib/api/hooks";
+import { useInfiniteResources } from "@/lib/api/hooks";
 import { Resource } from "@/domain/Resource";
-import { Info, PlusCircle } from "lucide-react";
+import { Info, Loader2, PlusCircle } from "lucide-react";
 import { useRef, useState } from "react";
 import { toast } from "sonner";
 import CreateKnowledgeBaseModal from "./CreateKnowledgeBaseModal";
@@ -87,8 +87,19 @@ const Toolbar = ({
 };
 
 const ResourcesExplorer = ({ connectionId, resourceId, className }: ResourcesExplorerProps) => {
-  const { data } = useResources(connectionId, resourceId, { suspense: true });
-  const resources = data?.data || [];
+  const {
+    resources,
+    hasNextPage,
+    loadMore,
+    isValidating
+  } = useInfiniteResources(
+    connectionId,
+    resourceId,
+    {
+      suspense: true,
+      initialSize: 1
+    }
+  );
   const tableRef = useRef<HTMLTableElement>(null);
 
   return (
@@ -101,6 +112,26 @@ const ResourcesExplorer = ({ connectionId, resourceId, className }: ResourcesExp
               connectionId={connectionId}
             />
             <ResourcesTable ref={tableRef} connectionId={connectionId} resources={resources} />
+            {hasNextPage && (
+              <div className="flex justify-center py-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={loadMore}
+                  disabled={isValidating}
+                  className="text-sm"
+                >
+                  {isValidating ? (
+                    <>
+                      <Loader2 className="mr-2 size-4 animate-spin" />
+                      Loading...
+                    </>
+                  ) : (
+                    "Load more"
+                  )}
+                </Button>
+              </div>
+            )}
           </div>
         ) : (
           <div className={cn("h-full flex flex-col items-center justify-center gap-2 p-4", className)}>

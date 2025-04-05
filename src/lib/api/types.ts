@@ -17,8 +17,8 @@ export interface AuthHeaders {
 
 export interface PaginatedResponse<T> {
   data: T[];
-  current_cursor: number | null;
-  next_cursor: number | null;
+  current_cursor: string | null;
+  next_cursor: string | null;
 }
 
 export interface InodePath {

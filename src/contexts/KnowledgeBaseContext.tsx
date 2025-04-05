@@ -4,6 +4,7 @@ import { useKnowledgeBaseResources } from "@/lib/api/hooks";
 import { Resource } from '@/domain/Resource';
 import { KnowledgeBase } from '@/domain/KnowledgeBase';
 import { createContext, useContext, useState, ReactNode, useMemo, useCallback } from "react";
+import { PaginatedResponse } from '@/lib/api/types';
 
 export type ResourceStatus = NonNullable<Resource['status']>;
 export type ResourceStatusMap = Record<string, ResourceStatus>;
@@ -29,10 +30,11 @@ export const KnowledgeBaseProvider = ({ children }: { children: ReactNode }) => 
   const { data: { data: resources } = { data: [] }, error, isLoading } = useKnowledgeBaseResources(
     currentKnowledgeBase?.knowledge_base_id || null,
     '/',
+    undefined, // No cursor for initial load
     {
       // Keep previous data while loading new data
       keepPreviousData: true,
-      onSuccess: (data) => {
+      onSuccess: (data: PaginatedResponse<Resource>) => {
         setResourceStatusMap(prevMap => {
           const newMap = { ...prevMap };
           data.data.forEach((resource: Resource) => {

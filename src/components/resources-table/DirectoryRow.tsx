@@ -37,7 +37,14 @@ const DirectoryRow = ({ connectionId, resource, leftOffset = 0 }: DirectoryRowPr
   //    - We have some range with this option, as we can choose the hover of the full row or the expand button itself.
   //    - Should be paired with focus enter events for accessibility.
   // - We may prefetch only when the user clicks to expand -> Children aren't fetched until it's sure the user wants to see them; but there's no prefetching at all and the user must wait for the fetch to finish. No overfetching.
-  const { data: childrenResources, isLoading: isLoadingChildren } = useResources(connectionId, resource.resource_id, { enabled: expanded || prefetchTriggered });
+  //
+  // For more dine-grained configuration or AB testing, we can create a childrenPrefetchStrategy prop to manage this behavior.
+  const { data: childrenResources, isLoading: isLoadingChildren } = useResources(
+    connectionId,
+    resource.resource_id,
+    undefined, // No cursor for initial load
+    { enabled: expanded || prefetchTriggered }
+  );
 
   const prefetchChildren = useCallback(() => {
     setPrefetchTriggered(true);
