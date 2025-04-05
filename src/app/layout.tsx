@@ -1,4 +1,3 @@
-import ViewBoundary from "@/components/boundaries/ViewBoundary";
 import { Toaster } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import swrConfig from "@/config/swr";
@@ -33,12 +32,10 @@ export default function RootLayout({
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
         <TooltipProvider>
-          <ViewBoundary className="h-full">
-            <SWRConfig value={swrConfig}>
-              {children}
-              <Toaster />
-            </SWRConfig>
-          </ViewBoundary>
+          <SWRConfig value={swrConfig}>
+            {children}
+            <Toaster />
+          </SWRConfig>
         </TooltipProvider>
       </body>
     </html>
