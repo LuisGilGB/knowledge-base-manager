@@ -3,9 +3,9 @@
 import { useKnowledgeBaseResources } from "@/lib/api/hooks";
 import { Resource } from '@/domain/Resource';
 import { KnowledgeBase } from '@/domain/KnowledgeBase';
-import { createContext, useContext, useState, ReactNode, useMemo } from "react";
+import { createContext, useContext, useState, ReactNode, useMemo, useCallback } from "react";
 
-export type ResourceStatus = Resource['status'];
+export type ResourceStatus = NonNullable<Resource['status']> | 'deindexed';
 export type ResourceStatusMap = Record<string, ResourceStatus>;
 
 interface KnowledgeBaseContextType {
@@ -18,6 +18,7 @@ interface KnowledgeBaseContextType {
   resourcesError: Error | null;
   resourceStatusMap: ResourceStatusMap;
   setResourcesAsPending: (resourceIds: string[]) => void;
+  markResourceAs: (resourceId: string, status: ResourceStatus) => void;
   clearResourceStatus: () => void;
 }
 
@@ -42,7 +43,11 @@ export const KnowledgeBaseProvider = ({ children }: { children: ReactNode }) => 
         setResourceStatusMap(prevMap => {
           const newMap = { ...prevMap };
           data.data.forEach((resource: Resource) => {
-            newMap[resource.resource_id] = resource.status;
+            if (!resource.status) {
+              delete newMap[resource.resource_id];
+            } else {
+              newMap[resource.resource_id] = resource.status;
+            }
           });
           return newMap;
         });
@@ -50,7 +55,7 @@ export const KnowledgeBaseProvider = ({ children }: { children: ReactNode }) => 
     }
   );
 
-  const setResourcesAsPending = (resourceIds: string[]) => {
+  const setResourcesAsPending = useCallback((resourceIds: string[]) => {
     setResourceStatusMap(prevMap => {
       const newMap = { ...prevMap };
       resourceIds.forEach(id => {
@@ -58,11 +63,19 @@ export const KnowledgeBaseProvider = ({ children }: { children: ReactNode }) => 
       });
       return newMap;
     });
-  };
+  }, [setResourceStatusMap]);
 
-  const clearResourceStatus = () => {
+  const markResourceAs = useCallback((resourceId: string, status: ResourceStatus) => {
+    setResourceStatusMap(prevMap => {
+      const newMap = { ...prevMap };
+      newMap[resourceId] = status;
+      return newMap;
+    });
+  }, [setResourceStatusMap]);
+
+  const clearResourceStatus = useCallback(() => {
     setResourceStatusMap({});
-  };
+  }, [setResourceStatusMap]);
 
   const contextValue = useMemo(() => ({
     currentKnowledgeBase,
@@ -74,6 +87,7 @@ export const KnowledgeBaseProvider = ({ children }: { children: ReactNode }) => 
     resourcesError: error || null,
     resourceStatusMap,
     setResourcesAsPending,
+    markResourceAs,
     clearResourceStatus
   }), [
     currentKnowledgeBase,
@@ -81,7 +95,10 @@ export const KnowledgeBaseProvider = ({ children }: { children: ReactNode }) => 
     resources,
     isLoading,
     error,
-    resourceStatusMap
+    resourceStatusMap,
+    setResourcesAsPending,
+    markResourceAs,
+    clearResourceStatus
   ]);
 
   return (

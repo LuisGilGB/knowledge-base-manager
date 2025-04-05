@@ -155,6 +155,11 @@ export class ApiClient {
       throw new Error(`API request failed: ${response.statusText}`);
     }
 
+    // Handle no content response
+    if (response.status === 204) {
+      return {} as T;
+    }
+
     return response.json() as Promise<T>;
   }
 }

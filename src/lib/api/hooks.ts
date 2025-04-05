@@ -219,3 +219,49 @@ export const useKnowledgeBaseOperations = () => {
     },
   };
 };
+
+/**
+ * Interface for de-indexing a resource
+ */
+export interface DeindexResourceParams {
+  knowledgeBaseId: string;
+  resourceId: string;
+  resourcePath: string;
+}
+
+/**
+ * Custom hook for de-indexing a resource using SWR mutation
+ * @returns SWR mutation for de-indexing a resource
+ */
+export const useDeindexResource = () => {
+  return useSWRMutation(
+    'deindex-resource',
+    async (_key: string, { arg }: { arg: DeindexResourceParams }) => {
+      const { knowledgeBaseId, resourceId, resourcePath } = arg;
+      const apiClient = AuthService.getApiClient();
+      if (!apiClient) {
+        throw new Error('Not authenticated');
+      }
+      const knowledgeBaseService = new KnowledgeBaseService(apiClient);
+
+      const result = await knowledgeBaseService.deleteKnowledgeBaseResource(
+        knowledgeBaseId,
+        resourcePath
+      );
+
+      // Revalidate the knowledge base resources cache
+      await mutate((key) => {
+        // Match any cache key that starts with ['kb-resources', knowledgeBaseId]
+        if (Array.isArray(key) &&
+          key.length >= 2 &&
+          key[0] === 'kb-resources' &&
+          key[1] === knowledgeBaseId) {
+          return true;
+        }
+        return false;
+      });
+
+      return { ...result, resourceId };
+    }
+  );
+};

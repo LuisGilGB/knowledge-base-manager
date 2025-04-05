@@ -64,7 +64,7 @@ const DirectoryRow = ({ connectionId, resource, leftOffset = 0 }: DirectoryRowPr
               <Button
                 variant="ghost"
                 size="icon"
-                className="size-6"
+                className="size-5"
                 onFocus={prefetchChildren}
                 onClick={onToggleExpandClick}
               >
