@@ -23,8 +23,6 @@ const KnowledgeBaseResourcesExplorer = ({ knowledgeBaseId, className }: Knowledg
     {
       suspense: true,
       initialSize: 1,
-      refreshInterval: 60_000,
-      dedupingInterval: 5_000,
     }
   );
   const tableRef = useRef<HTMLTableElement>(null);

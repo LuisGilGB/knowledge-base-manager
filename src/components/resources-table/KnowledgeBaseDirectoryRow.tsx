@@ -41,8 +41,6 @@ const KnowledgeBaseDirectoryRow = ({ knowledgeBaseId, resource, leftOffset = 0 }
     {
       enabled: expanded || prefetchTriggered,
       initialSize: 1,
-      refreshInterval: 60000,
-      dedupingInterval: 5000,
     }
   );
 

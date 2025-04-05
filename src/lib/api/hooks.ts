@@ -227,6 +227,9 @@ export const useInfiniteKnowledgeBaseResources = (
       return result;
     },
     {
+      // Let's make it short enough in order to not to have to wait too much to check the overall work in the demo
+      refreshInterval: 20_000,
+      dedupingInterval: 5_000,
       ...config,
       initialSize,
     }
