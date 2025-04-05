@@ -1,29 +1,23 @@
 'use client';
 
-import { Button } from "@/components/ui/button";
-import { TableCell } from "@/components/ui/table";
 import { useSelection } from "@/contexts/SelectionContext";
 import { DirectoryResource } from "@/domain/Resource";
-import useToggle from "@/hooks/useToggle";
-import { useResources } from "@/lib/api/hooks";
-import { ChevronDown, ChevronRight, Folder } from "lucide-react";
-import { useCallback, useState } from "react";
+import useNestedResources from "@/hooks/useNestedResources";
+import { useInfiniteResources } from "@/lib/api/hooks";
 import { TableRow } from "../ui/table";
+import DirectoryNameCell from "./cells/DirectoryNameCell";
 import SelectorCell from "./cells/SelectorCell";
-import StatusCell from "./cells/StatusCell";
-import FileRow from "./FileRow";
+import ConnectionFileRow from "./ConnectionFileRow";
 import SkeletonRow from "./SkeletonRow";
-import { getResourceName } from "./utils";
 
-interface DirectoryRowProps {
+interface ConnectionDirectoryRowProps {
   connectionId: string;
   resource: DirectoryResource;
   leftOffset?: number;
 }
 
-const DirectoryRow = ({ connectionId, resource, leftOffset = 0 }: DirectoryRowProps) => {
-  const [expanded, toggleExpanded] = useToggle(false);
-  const [prefetchTriggered, setPrefetchTriggered] = useState(false);
+const ConnectionDirectoryRow = ({ connectionId, resource, leftOffset = 0 }: ConnectionDirectoryRowProps) => {
+  const { expanded, toggleExpanded, prefetchTriggered, prefetchChildren } = useNestedResources();
   const { isSelected } = useSelection();
   const selected = isSelected(resource.resource_id);
 
@@ -39,74 +33,45 @@ const DirectoryRow = ({ connectionId, resource, leftOffset = 0 }: DirectoryRowPr
   // - We may prefetch only when the user clicks to expand -> Children aren't fetched until it's sure the user wants to see them; but there's no prefetching at all and the user must wait for the fetch to finish. No overfetching.
   //
   // For more dine-grained configuration or AB testing, we can create a childrenPrefetchStrategy prop to manage this behavior.
-  const { data: childrenResources, isLoading: isLoadingChildren } = useResources(
+  const { resources: childrenResources, isLoading: isLoadingChildren } = useInfiniteResources(
     connectionId,
     resource.resource_id,
-    undefined, // No cursor for initial load
     { enabled: expanded || prefetchTriggered }
   );
 
-  const prefetchChildren = useCallback(() => {
-    setPrefetchTriggered(true);
-  }, []);
-
-  const onToggleExpandClick = useCallback((e: React.MouseEvent) => {
-    e.stopPropagation();
-    e.preventDefault();
-    toggleExpanded();
-  }, [toggleExpanded]);
-
   return (
     <>
-      <TableRow key={resource.resource_id} className={selected ? "bg-muted/50" : ""} onMouseEnter={prefetchChildren}>
+      <TableRow className={selected ? "bg-muted/50" : ""} onMouseEnter={prefetchChildren}>
         <SelectorCell
           resource={resource}
         />
-        <TableCell>
-          <div className="flex items-center">
-            {Array.from({ length: leftOffset }).map((_, index) => (
-              <span key={index} className="block w-6" />
-            ))}
-            {resource.inode_type === 'directory' ? (
-              <Button
-                variant="ghost"
-                size="icon"
-                className="size-5"
-                onFocus={prefetchChildren}
-                onClick={onToggleExpandClick}
-              >
-                {expanded ?
-                  <ChevronDown className="h-4 w-4" /> :
-                  <ChevronRight className="h-4 w-4" />
-                }
-              </Button>
-            ) : null}
-            <Folder className="size-4 mx-2 text-blue-500" />
-            <span>{getResourceName(resource)}</span>
-          </div>
-        </TableCell>
-        <StatusCell resource={resource} />
+        <DirectoryNameCell
+          resource={resource}
+          leftOffset={leftOffset}
+          expanded={expanded}
+          onToggleExpandClick={toggleExpanded}
+          onToggleExpandFocus={prefetchChildren}
+        />
       </TableRow>
       {expanded && isLoadingChildren && <SkeletonRow />}
-      {expanded && childrenResources?.data?.length && (
+      {expanded && childrenResources?.length > 0 && (
         // Two things to notice, because we may be playing with fire if we don't handle this carefully:
         // 1. We don't use ResourceRow because that would create a circular dependency (further research is needed to check how ES modules handle this)
         // 2. RECURSION. Source data is not infinite (I think we can presume) and the defaults are kind of sane (collapsed by default).
         //    I mean, recursion is great to work with trees, but a dangerous tool if not used carefully.
         <>
-          {childrenResources?.data?.map((childResource) => (
+          {childrenResources?.map((childResource) => (
             childResource.inode_type === 'directory' ? (
-              <DirectoryRow
+              <ConnectionDirectoryRow
                 key={childResource.resource_id}
                 connectionId={connectionId}
                 resource={childResource}
                 leftOffset={leftOffset + 1}
               />
             ) : (
-              <FileRow
+              <ConnectionFileRow
                 key={childResource.resource_id}
                 resource={childResource}
-                connectionId={connectionId}
                 leftOffset={leftOffset + 1}
               />
             )
@@ -117,4 +82,4 @@ const DirectoryRow = ({ connectionId, resource, leftOffset = 0 }: DirectoryRowPr
   );
 };
 
-export default DirectoryRow;
+export default ConnectionDirectoryRow;

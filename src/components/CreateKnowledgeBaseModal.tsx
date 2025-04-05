@@ -12,19 +12,19 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { useKnowledgeBase } from "@/contexts/KnowledgeBaseContext";
 import { useSelection } from "@/contexts/SelectionContext";
 import { CreateKnowledgeBaseParams, useCreateKnowledgeBase } from "@/lib/api/hooks";
 import { filterOutDescendantResources, Resource } from "@/domain/Resource";
 import { cn } from "@/lib/utils";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { ChevronDown, ChevronUp, File, Folder } from "lucide-react";
+import { ChevronDown, ChevronUp, File, Folder, Loader2 } from "lucide-react";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { z } from "zod";
 import { getResourceName } from "./resources-table/utils";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "./ui/collapsible";
+import { useRouter } from "next/navigation";
 
 const formSchema = z.object({
   name: z.string().min(1, "Name is required"),
@@ -46,12 +46,9 @@ const CreateKnowledgeBaseModal = ({
   connectionId,
   selectedResources,
 }: CreateKnowledgeBaseModalProps) => {
+  const router = useRouter();
   const [isResourcesOpen, setIsResourcesOpen] = useState(false);
   const { clearSelection } = useSelection();
-  const {
-    setCurrentKnowledgeBase,
-    setResourcesAsPending
-  } = useKnowledgeBase();
 
   const {
     register,
@@ -65,23 +62,8 @@ const CreateKnowledgeBaseModal = ({
       description: "",
     },
   });
-  const { trigger: createKnowledgeBase, isMutating } = useCreateKnowledgeBase({
-    onBeforeCreationRequest: (params) => {
-      // Set the selected resources as pending in the status map
-      setResourcesAsPending(params.connectionSourceIds);
 
-      // We close the dialog optimistically, but with a small delay so the effect is not too jarring
-      setTimeout(() => {
-        reset();
-        // TODO: Restore selection in case the creation of the knowledge base fails
-        clearSelection();
-        onClose();
-      }, 100);
-    },
-    onCreationCompleted: (_params, knowledgeBase) => {
-      setCurrentKnowledgeBase(knowledgeBase);
-    }
-  });
+  const { trigger: createKnowledgeBase, isMutating } = useCreateKnowledgeBase();
 
   const onSubmit = async (data: FormData) => {
     try {
@@ -98,10 +80,9 @@ const CreateKnowledgeBaseModal = ({
         );
       }
 
-      const resourceIds = filteredResources.map(resource => resource.resource_id);
       const params: CreateKnowledgeBaseParams = {
         connectionId,
-        connectionSourceIds: resourceIds,
+        connectionSources: filteredResources,
         name: data.name,
         description: data.description
       };
@@ -109,9 +90,10 @@ const CreateKnowledgeBaseModal = ({
       const result = await createKnowledgeBase(params);
 
       if (result) {
-        toast("Success", {
-          description: "Knowledge base created successfully",
-        });
+        reset();
+        clearSelection();
+        onClose();
+        router.push(`/knowledge-bases/${result.knowledge_base_id}`);
       }
     } catch (error) {
       console.error("Failed to create knowledge base:", error);
@@ -220,7 +202,14 @@ const CreateKnowledgeBaseModal = ({
               type="submit"
               disabled={isMutating}
             >
-              {isMutating ? "Creating..." : "Create"}
+              {isMutating ? (
+                <span className="flex items-center gap-2">
+                  <Loader2 className="size-4 animate-spin" />
+                  Creating...
+                </span>
+              ) : (
+                "Create"
+              )}
             </Button>
           </DialogFooter>
         </form>

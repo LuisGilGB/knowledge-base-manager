@@ -1,8 +1,10 @@
 import ViewBoundary from "@/components/boundaries/ViewBoundary";
 import { Toaster } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
+import swrConfig from "@/config/swr";
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
+import { SWRConfig } from "swr";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -31,9 +33,11 @@ export default function RootLayout({
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
         <TooltipProvider>
-          <ViewBoundary className="h-full">
-            {children}
-            <Toaster />
+          <ViewBoundary className="h-dvh">
+            <SWRConfig value={swrConfig}>
+              {children}
+              <Toaster />
+            </SWRConfig>
           </ViewBoundary>
         </TooltipProvider>
       </body>

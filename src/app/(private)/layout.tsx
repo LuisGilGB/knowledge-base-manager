@@ -1,3 +1,4 @@
+import AppHeader from "@/components/AppHeader";
 import PrivateLayoutComponent from "@/components/PrivateLayout";
 
 const PrivateLayout = ({
@@ -6,7 +7,7 @@ const PrivateLayout = ({
   children: React.ReactNode;
 }>) => {
   return (
-    <PrivateLayoutComponent>
+    <PrivateLayoutComponent header={<AppHeader />}>
       {children}
     </PrivateLayoutComponent>
   );

@@ -4,7 +4,7 @@
 /**
  * Custom hooks for API services using SWR
  */
-import useSWR, { SWRConfiguration, SWRResponse, mutate } from 'swr';
+import useSWR, { SWRConfiguration, SWRResponse } from 'swr';
 import useSWRMutation from 'swr/mutation';
 import { AuthService, ConnectionService, KnowledgeBaseService } from './services';
 import { Connection } from '@/domain/Connection';
@@ -12,6 +12,8 @@ import { Resource } from '@/domain/Resource';
 import { KnowledgeBase } from '@/domain/KnowledgeBase';
 import { PaginatedResponse } from './types';
 import useSWRInfinite from 'swr/infinite';
+import { toast } from 'sonner';
+import { useCallback } from 'react';
 
 /**
  * Custom hook for fetching Google Drive connections
@@ -88,10 +90,10 @@ export const useKnowledgeBaseResources = (
   knowledgeBaseId: string | null,
   resourcePath: string = '/',
   cursor?: string,
-  config: SWRConfiguration = {}
+  { enabled = true, ...config }: SWRConfiguration & { enabled?: boolean } = {}
 ): SWRResponse<PaginatedResponse<Resource>, Error> => {
   return useSWR(
-    knowledgeBaseId && AuthService.isAuthenticated()
+    enabled && knowledgeBaseId && AuthService.isAuthenticated()
       ? ['kb-resources', knowledgeBaseId, resourcePath, cursor]
       : null,
     async () => {
@@ -225,6 +227,9 @@ export const useInfiniteKnowledgeBaseResources = (
       return result;
     },
     {
+      // Let's make it short enough in order to not to have to wait too much to check the overall work in the demo
+      refreshInterval: 20_000,
+      dedupingInterval: 5_000,
       ...config,
       initialSize,
     }
@@ -240,11 +245,36 @@ export const useInfiniteKnowledgeBaseResources = (
     }
   };
 
+  const deindexMutate = useCallback(async (knowledgeBaseId: string, resourcePath: string) => {
+    const predictedData = response.data?.map(d => ({
+      ...d,
+      data: d.data.map((r) => r.inode_path.path === resourcePath ? { ...r, status: 'pending_delete' as Resource['status'] } : r)
+    }));
+    response.mutate(predictedData, false);
+    try {
+      const apiClient = AuthService.getApiClient();
+      if (!apiClient) {
+        throw new Error('Not authenticated');
+      }
+      const knowledgeBaseService = new KnowledgeBaseService(apiClient);
+      await knowledgeBaseService.deleteKnowledgeBaseResource(
+        knowledgeBaseId,
+        resourcePath
+      );
+      toast.success('Resource de-indexed successfully');
+    } catch (error) {
+      console.error(error);
+      response.mutate(undefined, false);
+      toast.error('Failed to de-index resource');
+    }
+  }, [response]);
+
   return {
     ...response,
     resources,
     hasNextPage,
     loadMore,
+    deindexMutate,
   };
 };
 
@@ -253,7 +283,7 @@ export const useInfiniteKnowledgeBaseResources = (
  */
 export interface CreateKnowledgeBaseParams {
   connectionId: string;
-  connectionSourceIds: string[];
+  connectionSources: Resource[];
   name: string;
   description: string;
 }
@@ -270,7 +300,7 @@ export const useCreateKnowledgeBase = (options: {
   return useSWRMutation(
     'create-knowledge-base',
     async (_key: string, { arg }: { arg: CreateKnowledgeBaseParams }) => {
-      const { connectionId, connectionSourceIds, name, description } = arg;
+      const { connectionId, connectionSources, name, description } = arg;
       const apiClient = AuthService.getApiClient();
       if (!apiClient) {
         throw new Error('Not authenticated');
@@ -282,83 +312,33 @@ export const useCreateKnowledgeBase = (options: {
       }
       const knowledgeBase = await knowledgeBaseService.createKnowledgeBase(
         connectionId,
-        connectionSourceIds,
+        connectionSources.map(r => r.resource_id),
         name,
         description
       );
 
+      // TODO: Mutate the resources cache for the new knowledge base optimistically
+      // const expectedKey = ['kb-resources', knowledgeBase.knowledge_base_id, '/', undefined];
+      // mutate(expectedKey, connectionSources.map(r => ({ ...r, status: 'pending' as Resource['status'] })));
+
       if (options.onCreationCompleted) {
         options.onCreationCompleted(arg, knowledgeBase);
       }
-
-      if (knowledgeBase) {
-        // Trigger sync after creation. We fire and forget because this is a background process.
-        void knowledgeBaseService.syncKnowledgeBase(knowledgeBase.knowledge_base_id);
-        if (options.onSyncRequested) {
-          options.onSyncRequested(arg);
-        }
-
-        // Revalidate the resources cache for the connection
-        // This will refresh the resource list in the UI
-        await mutate((key) => {
-          // Match any cache key that starts with ['resources', connectionId]
-          if (Array.isArray(key) &&
-            key.length >= 2 &&
-            key[0] === 'resources' &&
-            key[1] === connectionId) {
-            return true;
-          }
-          return false;
-        });
-      }
-
-      return knowledgeBase;
-    }
-  );
-};
-
-/**
- * Interface for de-indexing a resource
- */
-export interface DeindexResourceParams {
-  knowledgeBaseId: string;
-  resourceId: string;
-  resourcePath: string;
-}
-
-/**
- * Custom hook for de-indexing a resource using SWR mutation
- * @returns SWR mutation for de-indexing a resource
- */
-export const useDeindexResource = () => {
-  return useSWRMutation(
-    'deindex-resource',
-    async (_key: string, { arg }: { arg: DeindexResourceParams }) => {
-      const { knowledgeBaseId, resourceId, resourcePath } = arg;
-      const apiClient = AuthService.getApiClient();
-      if (!apiClient) {
-        throw new Error('Not authenticated');
-      }
-      const knowledgeBaseService = new KnowledgeBaseService(apiClient);
-
-      const result = await knowledgeBaseService.deleteKnowledgeBaseResource(
-        knowledgeBaseId,
-        resourcePath
-      );
-
-      // Revalidate the knowledge base resources cache
-      await mutate((key) => {
-        // Match any cache key that starts with ['kb-resources', knowledgeBaseId]
-        if (Array.isArray(key) &&
-          key.length >= 2 &&
-          key[0] === 'kb-resources' &&
-          key[1] === knowledgeBaseId) {
-          return true;
-        }
-        return false;
+      toast("Success", {
+        description: "Knowledge base created successfully. Syncing started, this may take a while...",
       });
 
-      return { ...result, resourceId };
+      // Trigger sync after creation. We fire and forget because this is a background process.
+      void knowledgeBaseService.syncKnowledgeBase(knowledgeBase.knowledge_base_id);
+      if (options.onSyncRequested) {
+        options.onSyncRequested(arg);
+      }
+
+      // Add a delay of 10 seconds to let this sync (it'd be better to optimistically set the cache for the resources list, but this is better
+      // than navigating to an empty page).
+      await new Promise(resolve => setTimeout(resolve, 10_000));
+
+      return knowledgeBase;
     }
   );
 };

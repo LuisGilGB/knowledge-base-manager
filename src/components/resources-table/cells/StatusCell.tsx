@@ -4,19 +4,12 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { TableCell } from "@/components/ui/table";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
-import { ResourceStatus, useKnowledgeBase } from "@/contexts/KnowledgeBaseContext";
 import { Resource } from "@/domain/Resource";
-import { useDeindexResource } from "@/lib/api/hooks";
 import { cn } from "@/lib/utils";
 import { CheckCircle, Clock, PinOff, XCircle } from "lucide-react";
 import { ComponentProps } from "react";
-import { toast } from "sonner";
 
-interface StatusCellProps {
-  resource: Resource;
-}
-
-const statusConfig: Record<ResourceStatus | 'default', { label: string; icon: React.ComponentType<{ className?: string }> | null; variant: ComponentProps<typeof Badge>['variant']; className: string }> = {
+const statusConfig: Record<NonNullable<Resource['status']> | 'default', { label: string; icon: React.ComponentType<{ className?: string }> | null; variant: ComponentProps<typeof Badge>['variant']; className: string }> = {
   pending: {
     label: "Pending...",
     icon: Clock,
@@ -49,37 +42,23 @@ const statusConfig: Record<ResourceStatus | 'default', { label: string; icon: Re
   }
 };
 
-const StatusCell = ({ resource }: StatusCellProps) => {
-  const { resourceStatusMap, currentKnowledgeBase, markResourceAs } = useKnowledgeBase();
-  const { trigger: deindexResource, isMutating: isDeindexing } = useDeindexResource();
+interface StatusCellProps {
+  resource: Resource;
+  isDeindexing?: boolean;
+  onDeindexClick?: () => void;
+}
 
-  const resourceStatus = resourceStatusMap[resource.resource_id];
-  const config = (resourceStatus && statusConfig[resourceStatus]) || statusConfig.default;
+const StatusCell = ({ resource, isDeindexing, onDeindexClick }: StatusCellProps) => {
+  const isFile = resource.inode_type === 'file';
+
+  if (!isFile) {
+    return (
+      <TableCell className="text-right"></TableCell>
+    );
+  }
+
+  const config = statusConfig[resource.status!] || statusConfig.default;
   const Icon = config.icon;
-
-  const handleDeindex = async (e: React.MouseEvent) => {
-    e.stopPropagation(); // Prevent row click event
-
-    if (!currentKnowledgeBase) {
-      toast.error("No knowledge base selected");
-      return;
-    }
-
-    try {
-      markResourceAs(resource.resource_id, 'pending_delete');
-      await deindexResource({
-        knowledgeBaseId: currentKnowledgeBase.knowledge_base_id,
-        resourceId: resource.resource_id,
-        resourcePath: resource.inode_path.path
-      });
-
-      toast.success("Resource de-indexed successfully");
-    } catch (error) {
-      markResourceAs(resource.resource_id, 'indexed');
-      console.error("Failed to de-index resource:", error);
-      toast.error("Failed to de-index resource");
-    }
-  };
 
   return (
     <TableCell className="text-right">
@@ -91,14 +70,14 @@ const StatusCell = ({ resource }: StatusCellProps) => {
           {Icon && <Icon className="size-3" />}
           {config.label}
         </Badge>
-        {resourceStatus === 'indexed' && (
+        {resource.status === 'indexed' && (
           <Tooltip>
             <TooltipTrigger asChild>
               <Button
                 variant="ghost"
                 size="icon"
                 className="handle-5 size-5 rounded-full hover:bg-red-100 hover:text-red-600"
-                onClick={handleDeindex}
+                onClick={onDeindexClick}
                 disabled={isDeindexing}
                 title="De-index this resource"
               >
