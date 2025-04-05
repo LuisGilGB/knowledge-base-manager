@@ -97,7 +97,7 @@ const ResourcesExplorer = ({ connectionId, resourceId, className }: ResourcesExp
       <SelectionProvider>
         <KnowledgeBaseStatus />
         {resources.length > 0 ? (
-          <div className={cn("space-y-2", className)}>
+          <div className={cn("flex flex-col gap-y-2 overflow-hidden", className)}>
             <Toolbar
               resources={resources}
               connectionId={connectionId}
