@@ -46,7 +46,7 @@ const KnowledgeBaseDirectoryRow = ({ knowledgeBaseId, resource, leftOffset = 0 }
           onToggleExpandClick={toggleExpanded}
           onToggleExpandFocus={prefetchChildren}
         />
-        <StatusCell resource={resource} />
+        <StatusCell resource={resource} knowledgeBaseId={knowledgeBaseId} />
       </TableRow>
       {expanded && isLoadingChildren && <SkeletonRow />}
       {expanded && childrenResources?.length > 0 && (
@@ -66,6 +66,7 @@ const KnowledgeBaseDirectoryRow = ({ knowledgeBaseId, resource, leftOffset = 0 }
             ) : (
               <KnowledgeBaseFileRow
                 key={childResource.resource_id}
+                knowledgeBaseId={knowledgeBaseId}
                 resource={childResource}
                 leftOffset={leftOffset + 1}
               />

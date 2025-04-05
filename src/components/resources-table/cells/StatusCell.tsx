@@ -4,7 +4,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { TableCell } from "@/components/ui/table";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
-import { ResourceStatus, useKnowledgeBase } from "@/contexts/KnowledgeBaseContext";
+import { ResourceStatus } from "@/contexts/KnowledgeBaseContext";
 import { Resource } from "@/domain/Resource";
 import { useDeindexResource } from "@/lib/api/hooks";
 import { cn } from "@/lib/utils";
@@ -13,6 +13,7 @@ import { ComponentProps } from "react";
 import { toast } from "sonner";
 
 interface StatusCellProps {
+  knowledgeBaseId: string;
   resource: Resource;
 }
 
@@ -49,33 +50,25 @@ const statusConfig: Record<ResourceStatus | 'default', { label: string; icon: Re
   }
 };
 
-const StatusCell = ({ resource }: StatusCellProps) => {
-  const { resourceStatusMap, currentKnowledgeBase, markResourceAs } = useKnowledgeBase();
+const StatusCell = ({ knowledgeBaseId, resource }: StatusCellProps) => {
   const { trigger: deindexResource, isMutating: isDeindexing } = useDeindexResource();
 
-  const resourceStatus = resourceStatusMap[resource.resource_id];
-  const config = (resourceStatus && statusConfig[resourceStatus]) || statusConfig.default;
+  const isFile = resource.inode_type === 'file';
+  const config = statusConfig[resource.status!] || statusConfig.default;
   const Icon = config.icon;
 
   const handleDeindex = async (e: React.MouseEvent) => {
     e.stopPropagation(); // Prevent row click event
 
-    if (!currentKnowledgeBase) {
-      toast.error("No knowledge base selected");
-      return;
-    }
-
     try {
-      markResourceAs(resource.resource_id, 'pending_delete');
       await deindexResource({
-        knowledgeBaseId: currentKnowledgeBase.knowledge_base_id,
+        knowledgeBaseId,
         resourceId: resource.resource_id,
         resourcePath: resource.inode_path.path
       });
 
       toast.success("Resource de-indexed successfully");
     } catch (error) {
-      markResourceAs(resource.resource_id, 'indexed');
       console.error("Failed to de-index resource:", error);
       toast.error("Failed to de-index resource");
     }
@@ -91,7 +84,7 @@ const StatusCell = ({ resource }: StatusCellProps) => {
           {Icon && <Icon className="size-3" />}
           {config.label}
         </Badge>
-        {resourceStatus === 'indexed' && (
+        {isFile && resource.status === 'indexed' && (
           <Tooltip>
             <TooltipTrigger asChild>
               <Button

@@ -17,6 +17,7 @@ const KnowledgeBaseResourceRow = ({ knowledgeBaseId, resource, leftOffset = 0 }:
     />
   ) : (
     <KnowledgeBaseFileRow
+      knowledgeBaseId={knowledgeBaseId}
       resource={resource}
       leftOffset={leftOffset}
     />

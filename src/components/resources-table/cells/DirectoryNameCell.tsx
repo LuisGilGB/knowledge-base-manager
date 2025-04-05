@@ -43,7 +43,7 @@ const DirectoryNameCell = ({ resource, leftOffset = 0, expanded = false, onToggl
           </Button>
         ) : null}
         <Folder className="size-4 mx-2 text-blue-500" />
-        <span>{getResourceName(resource)}</span>
+        <span className="truncate">{getResourceName(resource)}</span>
       </div>
     </TableCell>
   );

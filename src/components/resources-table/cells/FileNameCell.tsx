@@ -14,7 +14,7 @@ const FileNameCell = ({ resource, leftOffset = 0 }: { resource: FileResource; le
           <span key={index} className="block w-6" />
         ))}
         <File className="size-4 mx-2" />
-        <span>{getResourceName(resource)}</span>
+        <span className="truncate">{getResourceName(resource)}</span>
       </div>
     </TableCell>
   );

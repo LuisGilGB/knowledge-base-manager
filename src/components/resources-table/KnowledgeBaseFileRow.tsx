@@ -7,14 +7,15 @@ import StatusCell from "./cells/StatusCell";
 
 interface KnowledgeBaseFileRowProps {
   resource: FileResource;
+  knowledgeBaseId: string;
   leftOffset?: number;
 }
 
-const KnowledgeBaseFileRow = ({ resource, leftOffset = 0 }: KnowledgeBaseFileRowProps) => {
+const KnowledgeBaseFileRow = ({ resource, leftOffset = 0, knowledgeBaseId }: KnowledgeBaseFileRowProps) => {
   return (
     <TableRow>
       <FileNameCell resource={resource} leftOffset={leftOffset} />
-      <StatusCell resource={resource} />
+      <StatusCell resource={resource} knowledgeBaseId={knowledgeBaseId} />
     </TableRow>
   );
 };
