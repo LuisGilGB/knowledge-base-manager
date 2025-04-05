@@ -13,8 +13,9 @@ const Page = async ({
 }) => {
   const { connectionId } = await params;
   return (
-    <div>
-      <ResourcesExplorer connectionId={connectionId} />
+    <div className="h-full flex flex-col gap-4">
+      <h2 className="text-2xl font-bold">Connection Explorer</h2>
+      <ResourcesExplorer connectionId={connectionId} className="flex-1" />
     </div>
   )
 }

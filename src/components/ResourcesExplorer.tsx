@@ -12,10 +12,13 @@ import { toast } from "sonner";
 import CreateKnowledgeBaseModal from "./CreateKnowledgeBaseModal";
 import ResourcesTable from "./resources-table/ResourcesTable";
 import KnowledgeBaseStatus from "./KnowledgeBaseStatus";
+import ViewBoundary from "./boundaries/ViewBoundary";
+import { cn } from "@/lib/utils";
 
 interface ResourcesExplorerProps {
   connectionId: string;
   resourceId?: string;
+  className?: string;
 }
 
 const Toolbar = ({
@@ -84,41 +87,42 @@ const Toolbar = ({
   );
 };
 
-const ResourcesExplorer = ({ connectionId, resourceId }: ResourcesExplorerProps) => {
-  const { data, error, isLoading } = useResources(connectionId, resourceId);
+const ResourcesExplorer = ({ connectionId, resourceId, className }: ResourcesExplorerProps) => {
+  const { data } = useResources(connectionId, resourceId, { suspense: true });
   const resources = data?.data || [];
   const tableRef = useRef<HTMLTableElement>(null);
 
   return (
     <KnowledgeBaseProvider>
       <SelectionProvider>
-        <div className="space-y-4">
-          <h2 className="text-2xl font-bold">Files and Folders</h2>
-          <KnowledgeBaseStatus />
-          {resources.length > 0 ? (
-            <div className="space-y-2">
-              <Toolbar
-                resources={resources}
-                connectionId={connectionId}
-              />
-              <ResourcesTable ref={tableRef} connectionId={connectionId} resources={resources} />
-            </div>
-          ) : (
-            <div className="flex flex-col items-center justify-center gap-2 p-4">
-              <Info className="size-8 text-muted-foreground" />
-              <p className="text-muted-foreground">
-                {isLoading
-                  ? "Loading resources..."
-                  : error
-                    ? "Error loading resources"
-                    : "No resources found"}
-              </p>
-            </div>
-          )}
-        </div>
+        <KnowledgeBaseStatus />
+        {resources.length > 0 ? (
+          <div className={cn("space-y-2", className)}>
+            <Toolbar
+              resources={resources}
+              connectionId={connectionId}
+            />
+            <ResourcesTable ref={tableRef} connectionId={connectionId} resources={resources} />
+          </div>
+        ) : (
+          <div className={cn("h-full flex flex-col items-center justify-center gap-2 p-4", className)}>
+            <Info className="size-8 text-muted-foreground" />
+            <p className="text-muted-foreground">
+              No resources found
+            </p>
+          </div>
+        )}
       </SelectionProvider>
     </KnowledgeBaseProvider>
   );
 };
 
-export default ResourcesExplorer;
+const ResourcesExplorerView = ({ connectionId, resourceId, className }: ResourcesExplorerProps) => {
+  return (
+    <ViewBoundary className={className}>
+      <ResourcesExplorer connectionId={connectionId} resourceId={resourceId} />
+    </ViewBoundary>
+  );
+};
+
+export default ResourcesExplorerView;
