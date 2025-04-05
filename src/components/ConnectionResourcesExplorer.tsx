@@ -2,7 +2,6 @@
 
 import { Button } from "@/components/ui/button";
 import { SelectionProvider, useSelection } from "@/contexts/SelectionContext";
-import { Resource } from "@/domain/Resource";
 import { useInfiniteResources } from "@/lib/api/hooks";
 import { cn } from "@/lib/utils";
 import { Info, PlusCircle } from "lucide-react";
@@ -18,25 +17,13 @@ interface ConnectionResourcesExplorerProps {
 }
 
 const Toolbar = ({
-  resources,
   connectionId
 }: {
-  resources: Resource[];
   connectionId: string;
 }) => {
-  const { getSelectedCount, getSelectedResources, selectAll, clearSelection } = useSelection();
+  const { getSelectedCount, getSelectedResources } = useSelection();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const selectedCount = getSelectedCount();
-  // The resources count is tricky here, because we haven't loaded all resources at this level due to nested resources.
-  const allSelected = selectedCount >= resources.length && resources.length > 0;
-
-  const handleSelectAllChange = () => {
-    if (allSelected) {
-      clearSelection();
-    } else {
-      selectAll(resources);
-    }
-  };
 
   const handleCreateKnowledgeBase = () => {
     const selectedResources = getSelectedResources();
@@ -90,10 +77,7 @@ const ConnectionResourcesExplorer = ({ connectionId, className }: ConnectionReso
     <SelectionProvider>
       {resources.length > 0 ? (
         <div className={cn("flex flex-col gap-y-2 overflow-hidden", className)}>
-          <Toolbar
-            resources={resources}
-            connectionId={connectionId}
-          />
+          <Toolbar connectionId={connectionId} />
           <ConnectionResourcesTable ref={tableRef} connectionId={connectionId} resources={resources} />
           {
             // TODO: I'm getting 500 errors when sending the cursor as a query parameter of the resources request,
