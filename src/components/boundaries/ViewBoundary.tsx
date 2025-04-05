@@ -1,3 +1,5 @@
+'use client';
+
 import { ErrorBoundary } from "react-error-boundary";
 import { cn } from "@/lib/utils";
 import { CircleAlert, Loader2 } from "lucide-react";
@@ -13,7 +15,9 @@ interface ViewBoundaryProps {
 }
 
 const windowReload = () => {
-  window.location.reload();
+  if (typeof window !== 'undefined') {
+    window.location.reload();
+  }
 }
 
 const DefaultErrorFallback = ({ className, reset }: { className?: string; reset?: () => void }) => {

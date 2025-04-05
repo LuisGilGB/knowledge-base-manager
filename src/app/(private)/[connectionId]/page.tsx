@@ -15,7 +15,7 @@ const Page = async ({
   return (
     <div className="h-full flex flex-col gap-4">
       <h2 className="text-2xl font-bold">Connection Explorer</h2>
-      <ResourcesExplorer connectionId={connectionId} className="flex-1" />
+      <ResourcesExplorer connectionId={connectionId} className="flex-1 overflow-hidden" />
     </div>
   )
 }
