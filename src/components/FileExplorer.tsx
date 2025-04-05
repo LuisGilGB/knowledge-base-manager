@@ -2,7 +2,8 @@
 
 import { useState, useCallback } from 'react';
 import { useConnections, useResources, useKnowledgeBaseOperations } from '@/lib/api/hooks';
-import { Connection, Resource } from '@/lib/api/types';
+import { Connection } from '@/domain/Connection';
+import { Resource } from '@/domain/Resource';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Card } from '@/components/ui/card';
@@ -103,7 +104,7 @@ const FileExplorer = ({ className }: FileExplorerProps) => {
           newIndexedResources[id] = true;
         });
         setIndexedResources(newIndexedResources);
-        
+
         toast.success('Resources indexed successfully');
       }
     } catch (error) {
@@ -138,7 +139,7 @@ const FileExplorer = ({ className }: FileExplorerProps) => {
         newIndexedResources[id] = false;
       });
       setIndexedResources(newIndexedResources);
-      
+
       toast.success('Resources de-indexed successfully');
     } catch (error) {
       console.error('Failed to de-index resources:', error);

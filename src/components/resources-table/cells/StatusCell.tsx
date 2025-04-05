@@ -1,7 +1,7 @@
 'use client';
 
 import { TableCell } from "@/components/ui/table";
-import { Resource } from "@/lib/api/types";
+import { Resource } from "@/domain/Resource";
 import { useKnowledgeBase } from "@/contexts/KnowledgeBaseContext";
 import { Badge } from "@/components/ui/badge";
 import { Clock, CheckCircle, XCircle } from "lucide-react";

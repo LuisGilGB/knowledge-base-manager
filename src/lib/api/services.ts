@@ -2,7 +2,10 @@
  * API services for Google Drive connection and Knowledge Base operations
  */
 import { ApiClient, getAuthHeaders } from './client';
-import { AuthCredentials, Connection, KnowledgeBase, PaginatedResponse, Resource } from './types';
+import { Connection } from '@/domain/Connection';
+import { Resource } from '@/domain/Resource';
+import { KnowledgeBase } from '@/domain/KnowledgeBase';
+import { AuthCredentials, PaginatedResponse } from './types';
 
 /**
  * Service for authentication operations

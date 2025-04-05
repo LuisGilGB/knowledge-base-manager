@@ -1,7 +1,7 @@
 'use client';
 
 import { useSelection } from "@/contexts/SelectionContext";
-import { FileResource } from "@/lib/api/types";
+import { FileResource } from "@/domain/Resource";
 import { File } from "lucide-react";
 import { TableCell, TableRow } from "../ui/table";
 import SelectorCell from "./cells/SelectorCell";

@@ -5,7 +5,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { KnowledgeBaseProvider } from "@/contexts/KnowledgeBaseContext";
 import { SelectionProvider, useSelection } from "@/contexts/SelectionContext";
 import { useResources } from "@/lib/api/hooks";
-import { Resource } from "@/lib/api/types";
+import { Resource } from "@/domain/Resource";
 import { Info, PlusCircle } from "lucide-react";
 import { useRef, useState } from "react";
 import { toast } from "sonner";

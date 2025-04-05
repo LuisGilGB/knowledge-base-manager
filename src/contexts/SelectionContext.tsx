@@ -1,6 +1,6 @@
 'use client';
 
-import { Resource } from "@/lib/api/types";
+import { Resource } from "@/domain/Resource";
 import { createContext, useContext, useState, ReactNode } from "react";
 
 interface SelectionContextType {

@@ -5,7 +5,7 @@ import { TableCell } from "@/components/ui/table";
 import { useSelection } from "@/contexts/SelectionContext";
 import useToggle from "@/hooks/useToggle";
 import { useResources } from "@/lib/api/hooks";
-import { DirectoryResource } from "@/lib/api/types";
+import { DirectoryResource } from "@/domain/Resource";
 import { ChevronDown, ChevronRight, Folder } from "lucide-react";
 import { TableRow } from "../ui/table";
 import SelectorCell from "./cells/SelectorCell";

@@ -1,4 +1,4 @@
-import { Resource } from "@/lib/api/types";
+import { Resource } from "@/domain/Resource";
 import DirectoryRow from "./DirectoryRow";
 import FileRow from "./FileRow";
 

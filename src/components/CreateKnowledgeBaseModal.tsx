@@ -15,7 +15,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { useKnowledgeBase } from "@/contexts/KnowledgeBaseContext";
 import { useSelection } from "@/contexts/SelectionContext";
 import { CreateKnowledgeBaseParams, useCreateKnowledgeBase } from "@/lib/api/hooks";
-import { Resource } from "@/lib/api/types";
+import { Resource } from "@/domain/Resource";
 import { cn } from "@/lib/utils";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { ChevronDown, ChevronUp, File, Folder } from "lucide-react";

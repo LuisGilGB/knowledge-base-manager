@@ -4,7 +4,10 @@
 import useSWR, { SWRConfiguration, SWRResponse, mutate } from 'swr';
 import useSWRMutation from 'swr/mutation';
 import { AuthService, ConnectionService, KnowledgeBaseService } from './services';
-import { Connection, KnowledgeBase, PaginatedResponse, Resource } from './types';
+import { Connection } from '@/domain/Connection';
+import { Resource } from '@/domain/Resource';
+import { KnowledgeBase } from '@/domain/KnowledgeBase';
+import { PaginatedResponse } from './types';
 
 /**
  * Custom hook for fetching Google Drive connections

@@ -1,7 +1,8 @@
 'use client';
 
 import { useKnowledgeBaseResources } from "@/lib/api/hooks";
-import { KnowledgeBase, Resource } from "@/lib/api/types";
+import { Resource } from '@/domain/Resource';
+import { KnowledgeBase } from '@/domain/KnowledgeBase';
 import { createContext, useContext, useState, ReactNode, useMemo } from "react";
 
 export type ResourceStatus = Resource['status'];

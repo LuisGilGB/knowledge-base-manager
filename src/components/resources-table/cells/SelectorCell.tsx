@@ -1,6 +1,6 @@
 'use client';
 
-import { Resource } from "@/lib/api/types";
+import { Resource } from "@/domain/Resource";
 import { TableCell } from "@/components/ui/table";
 import { Checkbox } from "@/components/ui/checkbox";
 import { useSelection } from "@/contexts/SelectionContext";

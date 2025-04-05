@@ -6,7 +6,7 @@ import {
   TableCell,
   TableRow
 } from "@/components/ui/table";
-import { Resource } from "@/lib/api/types";
+import { Resource } from "@/domain/Resource";
 import { Info } from "lucide-react";
 import ResourceRow from "./ResourceRow";
 
