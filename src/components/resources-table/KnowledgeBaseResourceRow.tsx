@@ -6,9 +6,11 @@ interface KnowledgeBaseResourceRowProps {
   knowledgeBaseId: string;
   resource: Resource;
   leftOffset?: number;
+  isDeindexing?: boolean;
+  onDeindexClick: (resourcePath: string) => void;
 }
 
-const KnowledgeBaseResourceRow = ({ knowledgeBaseId, resource, leftOffset = 0 }: KnowledgeBaseResourceRowProps) => {
+const KnowledgeBaseResourceRow = ({ knowledgeBaseId, resource, leftOffset = 0, isDeindexing, onDeindexClick }: KnowledgeBaseResourceRowProps) => {
   return resource.inode_type === 'directory' ? (
     <KnowledgeBaseDirectoryRow
       knowledgeBaseId={knowledgeBaseId}
@@ -17,9 +19,10 @@ const KnowledgeBaseResourceRow = ({ knowledgeBaseId, resource, leftOffset = 0 }:
     />
   ) : (
     <KnowledgeBaseFileRow
-      knowledgeBaseId={knowledgeBaseId}
       resource={resource}
       leftOffset={leftOffset}
+      isDeindexing={isDeindexing}
+      onDeindexClick={onDeindexClick}
     />
   );
 };

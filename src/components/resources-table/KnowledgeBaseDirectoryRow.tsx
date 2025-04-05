@@ -8,6 +8,7 @@ import DirectoryNameCell from "./cells/DirectoryNameCell";
 import StatusCell from "./cells/StatusCell";
 import KnowledgeBaseFileRow from "./KnowledgeBaseFileRow";
 import SkeletonRow from "./SkeletonRow";
+import { useCallback } from "react";
 
 interface KnowledgeBaseDirectoryRowProps {
   knowledgeBaseId: string;
@@ -30,11 +31,24 @@ const KnowledgeBaseDirectoryRow = ({ knowledgeBaseId, resource, leftOffset = 0 }
   // - We may prefetch only when the user clicks to expand -> Children aren't fetched until it's sure the user wants to see them; but there's no prefetching at all and the user must wait for the fetch to finish. No overfetching.
   //
   // For more dine-grained configuration or AB testing, we can create a childrenPrefetchStrategy prop to manage this behavior.
-  const { resources: childrenResources, isLoading: isLoadingChildren } = useInfiniteKnowledgeBaseResources(
+  const {
+    resources: childrenResources,
+    isLoading: isLoadingChildren,
+    deindexMutate,
+  } = useInfiniteKnowledgeBaseResources(
     knowledgeBaseId,
     resource.inode_path.path,
-    { enabled: expanded || prefetchTriggered }
+    {
+      enabled: expanded || prefetchTriggered,
+      initialSize: 1,
+      refreshInterval: 60000,
+      dedupingInterval: 5000,
+    }
   );
+
+  const handleDeindexChildrenResource = useCallback(async (resourceId: string) => {
+    deindexMutate(knowledgeBaseId, resourceId);
+  }, [deindexMutate, knowledgeBaseId]);
 
   return (
     <>
@@ -46,7 +60,7 @@ const KnowledgeBaseDirectoryRow = ({ knowledgeBaseId, resource, leftOffset = 0 }
           onToggleExpandClick={toggleExpanded}
           onToggleExpandFocus={prefetchChildren}
         />
-        <StatusCell resource={resource} knowledgeBaseId={knowledgeBaseId} />
+        <StatusCell resource={resource} />
       </TableRow>
       {expanded && isLoadingChildren && <SkeletonRow />}
       {expanded && childrenResources?.length > 0 && (
@@ -66,9 +80,9 @@ const KnowledgeBaseDirectoryRow = ({ knowledgeBaseId, resource, leftOffset = 0 }
             ) : (
               <KnowledgeBaseFileRow
                 key={childResource.resource_id}
-                knowledgeBaseId={knowledgeBaseId}
                 resource={childResource}
                 leftOffset={leftOffset + 1}
+                onDeindexClick={handleDeindexChildrenResource}
               />
             )
           ))}

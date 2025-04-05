@@ -12,6 +12,8 @@ import { Resource } from '@/domain/Resource';
 import { KnowledgeBase } from '@/domain/KnowledgeBase';
 import { PaginatedResponse } from './types';
 import useSWRInfinite from 'swr/infinite';
+import { toast } from 'sonner';
+import { useCallback } from 'react';
 
 /**
  * Custom hook for fetching Google Drive connections
@@ -240,11 +242,36 @@ export const useInfiniteKnowledgeBaseResources = (
     }
   };
 
+  const deindexMutate = useCallback(async (knowledgeBaseId: string, resourcePath: string) => {
+    const predictedData = response.data?.map(d => ({
+      ...d,
+      data: d.data.map((r) => r.inode_path.path === resourcePath ? { ...r, status: 'pending_delete' as Resource['status'] } : r)
+    }));
+    response.mutate(predictedData, false);
+    try {
+      const apiClient = AuthService.getApiClient();
+      if (!apiClient) {
+        throw new Error('Not authenticated');
+      }
+      const knowledgeBaseService = new KnowledgeBaseService(apiClient);
+      await knowledgeBaseService.deleteKnowledgeBaseResource(
+        knowledgeBaseId,
+        resourcePath
+      );
+      toast.success('Resource de-indexed successfully');
+    } catch (error) {
+      console.error(error);
+      response.mutate(undefined, false);
+      toast.error('Failed to de-index resource');
+    }
+  }, [response]);
+
   return {
     ...response,
     resources,
     hasNextPage,
     loadMore,
+    deindexMutate,
   };
 };
 
@@ -313,52 +340,6 @@ export const useCreateKnowledgeBase = (options: {
       }
 
       return knowledgeBase;
-    }
-  );
-};
-
-/**
- * Interface for de-indexing a resource
- */
-export interface DeindexResourceParams {
-  knowledgeBaseId: string;
-  resourceId: string;
-  resourcePath: string;
-}
-
-/**
- * Custom hook for de-indexing a resource using SWR mutation
- * @returns SWR mutation for de-indexing a resource
- */
-export const useDeindexResource = () => {
-  return useSWRMutation(
-    'deindex-resource',
-    async (_key: string, { arg }: { arg: DeindexResourceParams }) => {
-      const { knowledgeBaseId, resourceId, resourcePath } = arg;
-      const apiClient = AuthService.getApiClient();
-      if (!apiClient) {
-        throw new Error('Not authenticated');
-      }
-      const knowledgeBaseService = new KnowledgeBaseService(apiClient);
-
-      const result = await knowledgeBaseService.deleteKnowledgeBaseResource(
-        knowledgeBaseId,
-        resourcePath
-      );
-
-      // Revalidate the knowledge base resources cache
-      await mutate((key) => {
-        // Match any cache key that starts with ['kb-resources', knowledgeBaseId]
-        if (Array.isArray(key) &&
-          key.length >= 2 &&
-          key[0] === 'kb-resources' &&
-          key[1] === knowledgeBaseId) {
-          return true;
-        }
-        return false;
-      });
-
-      return { ...result, resourceId };
     }
   );
 };

@@ -5,16 +5,9 @@ import { Button } from "@/components/ui/button";
 import { TableCell } from "@/components/ui/table";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { Resource } from "@/domain/Resource";
-import { useDeindexResource } from "@/lib/api/hooks";
 import { cn } from "@/lib/utils";
 import { CheckCircle, Clock, PinOff, XCircle } from "lucide-react";
-import { ComponentProps, useCallback } from "react";
-import { toast } from "sonner";
-
-interface StatusCellProps {
-  knowledgeBaseId: string;
-  resource: Resource;
-}
+import { ComponentProps } from "react";
 
 const statusConfig: Record<NonNullable<Resource['status']> | 'default', { label: string; icon: React.ComponentType<{ className?: string }> | null; variant: ComponentProps<typeof Badge>['variant']; className: string }> = {
   pending: {
@@ -49,26 +42,13 @@ const statusConfig: Record<NonNullable<Resource['status']> | 'default', { label:
   }
 };
 
-const StatusCell = ({ knowledgeBaseId, resource }: StatusCellProps) => {
-  const { trigger: deindexResource, isMutating: isDeindexing } = useDeindexResource();
+interface StatusCellProps {
+  resource: Resource;
+  isDeindexing?: boolean;
+  onDeindexClick?: () => void;
+}
 
-  const handleDeindex = useCallback(async (e: React.MouseEvent) => {
-    e.stopPropagation(); // Prevent row click event
-
-    try {
-      await deindexResource({
-        knowledgeBaseId,
-        resourceId: resource.resource_id,
-        resourcePath: resource.inode_path.path
-      });
-
-      toast.success("Resource de-indexed successfully");
-    } catch (error) {
-      console.error("Failed to de-index resource:", error);
-      toast.error("Failed to de-index resource");
-    }
-  }, [deindexResource, knowledgeBaseId, resource.resource_id, resource.inode_path.path]);
-
+const StatusCell = ({ resource, isDeindexing, onDeindexClick }: StatusCellProps) => {
   const isFile = resource.inode_type === 'file';
 
   if (!isFile) {
@@ -97,7 +77,7 @@ const StatusCell = ({ knowledgeBaseId, resource }: StatusCellProps) => {
                 variant="ghost"
                 size="icon"
                 className="handle-5 size-5 rounded-full hover:bg-red-100 hover:text-red-600"
-                onClick={handleDeindex}
+                onClick={onDeindexClick}
                 disabled={isDeindexing}
                 title="De-index this resource"
               >

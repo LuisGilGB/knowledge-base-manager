@@ -4,7 +4,7 @@ import { SelectionProvider } from "@/contexts/SelectionContext";
 import { useInfiniteKnowledgeBaseResources } from "@/lib/api/hooks";
 import { cn } from "@/lib/utils";
 import { Info } from "lucide-react";
-import { useRef } from "react";
+import { useCallback, useRef } from "react";
 import ViewBoundary from "./boundaries/ViewBoundary";
 import KnowledgeBaseResourcesTable from "./resources-table/KnowledgeBaseResourcesTable";
 
@@ -16,21 +16,28 @@ interface KnowledgeBaseResourcesExplorerProps {
 const KnowledgeBaseResourcesExplorer = ({ knowledgeBaseId, className }: KnowledgeBaseResourcesExplorerProps) => {
   const {
     resources,
+    deindexMutate,
   } = useInfiniteKnowledgeBaseResources(
     knowledgeBaseId,
     undefined,
     {
       suspense: true,
-      initialSize: 1
+      initialSize: 1,
+      refreshInterval: 60000,
+      dedupingInterval: 5000,
     }
   );
   const tableRef = useRef<HTMLTableElement>(null);
+
+  const handleDeindexResource = useCallback(async (resourceId: string) => {
+    deindexMutate(knowledgeBaseId, resourceId);
+  }, [deindexMutate, knowledgeBaseId]);
 
   return (
     <SelectionProvider>
       {resources.length > 0 ? (
         <div className={cn("flex flex-col gap-y-2 overflow-hidden", className)}>
-          <KnowledgeBaseResourcesTable ref={tableRef} knowledgeBaseId={knowledgeBaseId} resources={resources} />
+          <KnowledgeBaseResourcesTable ref={tableRef} knowledgeBaseId={knowledgeBaseId} resources={resources} onDeindexResourceClick={handleDeindexResource} />
         </div>
       ) : (
         <div className={cn("h-full flex flex-col items-center justify-center gap-2 p-4", className)}>
