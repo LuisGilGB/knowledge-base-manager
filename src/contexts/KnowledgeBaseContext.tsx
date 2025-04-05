@@ -5,14 +5,12 @@ import { Resource } from '@/domain/Resource';
 import { KnowledgeBase } from '@/domain/KnowledgeBase';
 import { createContext, useContext, useState, ReactNode, useMemo, useCallback } from "react";
 
-export type ResourceStatus = NonNullable<Resource['status']> | 'deindexed';
+export type ResourceStatus = NonNullable<Resource['status']>;
 export type ResourceStatusMap = Record<string, ResourceStatus>;
 
 interface KnowledgeBaseContextType {
   currentKnowledgeBase: KnowledgeBase | null;
   setCurrentKnowledgeBase: (knowledgeBase: KnowledgeBase | null) => void;
-  isSyncing: boolean;
-  setIsSyncing: (isSyncing: boolean) => void;
   knowledgeBaseResources: Resource[];
   isLoadingResources: boolean;
   resourcesError: Error | null;
@@ -26,17 +24,12 @@ const KnowledgeBaseContext = createContext<KnowledgeBaseContextType | undefined>
 
 export const KnowledgeBaseProvider = ({ children }: { children: ReactNode }) => {
   const [currentKnowledgeBase, setCurrentKnowledgeBase] = useState<KnowledgeBase | null>(null);
-  const [isSyncing, setIsSyncing] = useState(false);
   const [resourceStatusMap, setResourceStatusMap] = useState<ResourceStatusMap>({});
 
   const { data: { data: resources } = { data: [] }, error, isLoading } = useKnowledgeBaseResources(
     currentKnowledgeBase?.knowledge_base_id || null,
     '/',
     {
-      // Refresh data every 5 seconds while syncing
-      refreshInterval: isSyncing ? 5000 : 0,
-      // Don't revalidate on focus while syncing to avoid too many requests
-      revalidateOnFocus: !isSyncing,
       // Keep previous data while loading new data
       keepPreviousData: true,
       onSuccess: (data) => {
@@ -80,8 +73,6 @@ export const KnowledgeBaseProvider = ({ children }: { children: ReactNode }) => 
   const contextValue = useMemo(() => ({
     currentKnowledgeBase,
     setCurrentKnowledgeBase,
-    isSyncing,
-    setIsSyncing,
     knowledgeBaseResources: resources || [],
     isLoadingResources: isLoading,
     resourcesError: error || null,
@@ -91,7 +82,6 @@ export const KnowledgeBaseProvider = ({ children }: { children: ReactNode }) => 
     clearResourceStatus
   }), [
     currentKnowledgeBase,
-    isSyncing,
     resources,
     isLoading,
     error,

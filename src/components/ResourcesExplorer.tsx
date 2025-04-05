@@ -11,7 +11,6 @@ import { useRef, useState } from "react";
 import { toast } from "sonner";
 import CreateKnowledgeBaseModal from "./CreateKnowledgeBaseModal";
 import ResourcesTable from "./resources-table/ResourcesTable";
-import KnowledgeBaseStatus from "./KnowledgeBaseStatus";
 import ViewBoundary from "./boundaries/ViewBoundary";
 import { cn } from "@/lib/utils";
 
@@ -95,7 +94,6 @@ const ResourcesExplorer = ({ connectionId, resourceId, className }: ResourcesExp
   return (
     <KnowledgeBaseProvider>
       <SelectionProvider>
-        <KnowledgeBaseStatus />
         {resources.length > 0 ? (
           <div className={cn("flex flex-col gap-y-2 overflow-hidden", className)}>
             <Toolbar

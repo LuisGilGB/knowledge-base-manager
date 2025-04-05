@@ -12,7 +12,7 @@ export interface Resource<T extends 'file' | 'directory' = 'file' | 'directory'>
   size?: number;
   created_at?: string;
   updated_at?: string;
-  status?: 'pending' | 'indexed' | 'failed';
+  status?: 'pending' | 'indexed' | 'failed' | 'pending_delete';
   parent_resource_id?: string;
 }
 

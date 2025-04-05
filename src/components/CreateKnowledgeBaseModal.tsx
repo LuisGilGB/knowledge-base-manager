@@ -50,7 +50,6 @@ const CreateKnowledgeBaseModal = ({
   const { clearSelection } = useSelection();
   const {
     setCurrentKnowledgeBase,
-    setIsSyncing,
     setResourcesAsPending
   } = useKnowledgeBase();
 
@@ -81,12 +80,6 @@ const CreateKnowledgeBaseModal = ({
     },
     onCreationCompleted: (_params, knowledgeBase) => {
       setCurrentKnowledgeBase(knowledgeBase);
-    },
-    onBeforeSyncRequest: () => {
-      setIsSyncing(true);
-    },
-    onSyncRequested: () => {
-      setIsSyncing(false);
     }
   });
 

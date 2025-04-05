@@ -18,7 +18,7 @@ interface StatusCellProps {
 
 const statusConfig: Record<ResourceStatus | 'default', { label: string; icon: React.ComponentType<{ className?: string }> | null; variant: ComponentProps<typeof Badge>['variant']; className: string }> = {
   pending: {
-    label: "Pending",
+    label: "Pending...",
     icon: Clock,
     variant: "secondary" as const,
     className: "text-yellow-600 bg-yellow-50 border-yellow-200"
@@ -35,7 +35,7 @@ const statusConfig: Record<ResourceStatus | 'default', { label: string; icon: Re
     variant: "secondary" as const,
     className: "text-red-600 bg-red-50 border-red-200"
   },
-  deindexed: {
+  pending_delete: {
     label: "De-indexed",
     icon: null,
     variant: "secondary" as const,
@@ -54,7 +54,7 @@ const StatusCell = ({ resource }: StatusCellProps) => {
   const { trigger: deindexResource, isMutating: isDeindexing } = useDeindexResource();
 
   const resourceStatus = resourceStatusMap[resource.resource_id];
-  const config = resourceStatus ? statusConfig[resourceStatus] : statusConfig.default;
+  const config = (resourceStatus && statusConfig[resourceStatus]) || statusConfig.default;
   const Icon = config.icon;
 
   const handleDeindex = async (e: React.MouseEvent) => {
@@ -66,7 +66,7 @@ const StatusCell = ({ resource }: StatusCellProps) => {
     }
 
     try {
-      markResourceAs(resource.resource_id, 'deindexed');
+      markResourceAs(resource.resource_id, 'pending_delete');
       await deindexResource({
         knowledgeBaseId: currentKnowledgeBase.knowledge_base_id,
         resourceId: resource.resource_id,

@@ -114,7 +114,6 @@ export interface CreateKnowledgeBaseParams {
 export const useCreateKnowledgeBase = (options: {
   onBeforeCreationRequest?: (params: CreateKnowledgeBaseParams) => void;
   onCreationCompleted?: (params: CreateKnowledgeBaseParams, knowledgeBase: KnowledgeBase) => void;
-  onBeforeSyncRequest?: (params: CreateKnowledgeBaseParams) => void;
   onSyncRequested?: (params: CreateKnowledgeBaseParams) => void;
 } = {}) => {
   return useSWRMutation(
@@ -142,15 +141,12 @@ export const useCreateKnowledgeBase = (options: {
       }
 
       if (knowledgeBase) {
-        if (options.onBeforeSyncRequest) {
-          options.onBeforeSyncRequest(arg);
-        }
-        // Trigger sync after creation
-        await knowledgeBaseService.syncKnowledgeBase(knowledgeBase.knowledge_base_id);
-
+        // Trigger sync after creation. We fire and forget because this is a background process.
+        void knowledgeBaseService.syncKnowledgeBase(knowledgeBase.knowledge_base_id);
         if (options.onSyncRequested) {
           options.onSyncRequested(arg);
         }
+
         // Revalidate the resources cache for the connection
         // This will refresh the resource list in the UI
         await mutate((key) => {
@@ -168,56 +164,6 @@ export const useCreateKnowledgeBase = (options: {
       return knowledgeBase;
     }
   );
-};
-
-/**
- * Custom hook for Knowledge Base operations
- * @returns Knowledge Base operations
- */
-export const useKnowledgeBaseOperations = () => {
-  return {
-    createKnowledgeBase: async (
-      connectionId: string,
-      connectionSourceIds: string[],
-      name: string,
-      description: string
-    ): Promise<KnowledgeBase | null> => {
-      const apiClient = AuthService.getApiClient();
-      if (!apiClient) {
-        throw new Error('Not authenticated');
-      }
-      const knowledgeBaseService = new KnowledgeBaseService(apiClient);
-      return knowledgeBaseService.createKnowledgeBase(
-        connectionId,
-        connectionSourceIds,
-        name,
-        description
-      );
-    },
-
-    syncKnowledgeBase: async (
-      knowledgeBaseId: string
-    ): Promise<{ status: string } | null> => {
-      const apiClient = AuthService.getApiClient();
-      if (!apiClient) {
-        throw new Error('Not authenticated');
-      }
-      const knowledgeBaseService = new KnowledgeBaseService(apiClient);
-      return knowledgeBaseService.syncKnowledgeBase(knowledgeBaseId);
-    },
-
-    deleteKnowledgeBaseResource: async (
-      knowledgeBaseId: string,
-      resourcePath: string
-    ): Promise<{ status: string } | null> => {
-      const apiClient = AuthService.getApiClient();
-      if (!apiClient) {
-        throw new Error('Not authenticated');
-      }
-      const knowledgeBaseService = new KnowledgeBaseService(apiClient);
-      return knowledgeBaseService.deleteKnowledgeBaseResource(knowledgeBaseId, resourcePath);
-    },
-  };
 };
 
 /**
