@@ -4,7 +4,7 @@
 /**
  * Custom hooks for API services using SWR
  */
-import useSWR, { SWRConfiguration, SWRResponse, mutate } from 'swr';
+import useSWR, { SWRConfiguration, SWRResponse } from 'swr';
 import useSWRMutation from 'swr/mutation';
 import { AuthService, ConnectionService, KnowledgeBaseService } from './services';
 import { Connection } from '@/domain/Connection';
@@ -280,7 +280,7 @@ export const useInfiniteKnowledgeBaseResources = (
  */
 export interface CreateKnowledgeBaseParams {
   connectionId: string;
-  connectionSourceIds: string[];
+  connectionSources: Resource[];
   name: string;
   description: string;
 }
@@ -297,7 +297,7 @@ export const useCreateKnowledgeBase = (options: {
   return useSWRMutation(
     'create-knowledge-base',
     async (_key: string, { arg }: { arg: CreateKnowledgeBaseParams }) => {
-      const { connectionId, connectionSourceIds, name, description } = arg;
+      const { connectionId, connectionSources, name, description } = arg;
       const apiClient = AuthService.getApiClient();
       if (!apiClient) {
         throw new Error('Not authenticated');
@@ -309,35 +309,31 @@ export const useCreateKnowledgeBase = (options: {
       }
       const knowledgeBase = await knowledgeBaseService.createKnowledgeBase(
         connectionId,
-        connectionSourceIds,
+        connectionSources.map(r => r.resource_id),
         name,
         description
       );
 
+      // TODO: Mutate the resources cache for the new knowledge base optimistically
+      // const expectedKey = ['kb-resources', knowledgeBase.knowledge_base_id, '/', undefined];
+      // mutate(expectedKey, connectionSources.map(r => ({ ...r, status: 'pending' as Resource['status'] })));
+
       if (options.onCreationCompleted) {
         options.onCreationCompleted(arg, knowledgeBase);
       }
+      toast("Success", {
+        description: "Knowledge base created successfully. Syncing started, this may take a while...",
+      });
 
-      if (knowledgeBase) {
-        // Trigger sync after creation. We fire and forget because this is a background process.
-        void knowledgeBaseService.syncKnowledgeBase(knowledgeBase.knowledge_base_id);
-        if (options.onSyncRequested) {
-          options.onSyncRequested(arg);
-        }
-
-        // Revalidate the resources cache for the connection
-        // This will refresh the resource list in the UI
-        await mutate((key) => {
-          // Match any cache key that starts with ['resources', connectionId]
-          if (Array.isArray(key) &&
-            key.length >= 2 &&
-            key[0] === 'resources' &&
-            key[1] === connectionId) {
-            return true;
-          }
-          return false;
-        });
+      // Trigger sync after creation. We fire and forget because this is a background process.
+      void knowledgeBaseService.syncKnowledgeBase(knowledgeBase.knowledge_base_id);
+      if (options.onSyncRequested) {
+        options.onSyncRequested(arg);
       }
+
+      // Add a delay of 10 seconds to let this sync (it'd be better to optimistically set the cache for the resources list, but this is better
+      // than navigating to an empty page).
+      await new Promise(resolve => setTimeout(resolve, 10_000));
 
       return knowledgeBase;
     }

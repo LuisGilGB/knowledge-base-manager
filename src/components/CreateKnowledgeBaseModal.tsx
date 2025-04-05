@@ -17,7 +17,7 @@ import { CreateKnowledgeBaseParams, useCreateKnowledgeBase } from "@/lib/api/hoo
 import { filterOutDescendantResources, Resource } from "@/domain/Resource";
 import { cn } from "@/lib/utils";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { ChevronDown, ChevronUp, File, Folder } from "lucide-react";
+import { ChevronDown, ChevronUp, File, Folder, Loader2 } from "lucide-react";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
@@ -62,14 +62,8 @@ const CreateKnowledgeBaseModal = ({
       description: "",
     },
   });
-  const { trigger: createKnowledgeBase, isMutating } = useCreateKnowledgeBase({
-    onCreationCompleted: (_params, knowledgeBase) => {
-      reset();
-      clearSelection();
-      onClose();
-      router.push(`/knowledge-bases/${knowledgeBase.knowledge_base_id}`);
-    }
-  });
+
+  const { trigger: createKnowledgeBase, isMutating } = useCreateKnowledgeBase();
 
   const onSubmit = async (data: FormData) => {
     try {
@@ -86,10 +80,9 @@ const CreateKnowledgeBaseModal = ({
         );
       }
 
-      const resourceIds = filteredResources.map(resource => resource.resource_id);
       const params: CreateKnowledgeBaseParams = {
         connectionId,
-        connectionSourceIds: resourceIds,
+        connectionSources: filteredResources,
         name: data.name,
         description: data.description
       };
@@ -97,9 +90,10 @@ const CreateKnowledgeBaseModal = ({
       const result = await createKnowledgeBase(params);
 
       if (result) {
-        toast("Success", {
-          description: "Knowledge base created successfully",
-        });
+        reset();
+        clearSelection();
+        onClose();
+        router.push(`/knowledge-bases/${result.knowledge_base_id}`);
       }
     } catch (error) {
       console.error("Failed to create knowledge base:", error);
@@ -208,7 +202,14 @@ const CreateKnowledgeBaseModal = ({
               type="submit"
               disabled={isMutating}
             >
-              {isMutating ? "Creating..." : "Create"}
+              {isMutating ? (
+                <span className="flex items-center gap-2">
+                  <Loader2 className="size-4 animate-spin" />
+                  Creating...
+                </span>
+              ) : (
+                "Create"
+              )}
             </Button>
           </DialogFooter>
         </form>
