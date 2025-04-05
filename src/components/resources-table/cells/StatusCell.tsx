@@ -1,15 +1,16 @@
 'use client';
 
-import { TableCell } from "@/components/ui/table";
-import { Resource } from "@/domain/Resource";
-import { ResourceStatus, useKnowledgeBase } from "@/contexts/KnowledgeBaseContext";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Clock, CheckCircle, XCircle, PinOff } from "lucide-react";
-import { cn } from "@/lib/utils";
+import { TableCell } from "@/components/ui/table";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import { ResourceStatus, useKnowledgeBase } from "@/contexts/KnowledgeBaseContext";
+import { Resource } from "@/domain/Resource";
 import { useDeindexResource } from "@/lib/api/hooks";
-import { toast } from "sonner";
+import { cn } from "@/lib/utils";
+import { CheckCircle, Clock, PinOff, XCircle } from "lucide-react";
 import { ComponentProps } from "react";
+import { toast } from "sonner";
 
 interface StatusCellProps {
   resource: Resource;
@@ -91,17 +92,26 @@ const StatusCell = ({ resource }: StatusCellProps) => {
           {config.label}
         </Badge>
         {resourceStatus === 'indexed' && (
-          <Button
-            variant="ghost"
-            size="icon"
-            className="handle-5 size-5 rounded-full hover:bg-red-100 hover:text-red-600"
-            onClick={handleDeindex}
-            disabled={isDeindexing}
-            title="De-index this resource"
-          >
-            <PinOff className="size-3" />
-            <span className="sr-only">De-index</span>
-          </Button>
+          <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="handle-5 size-5 rounded-full hover:bg-red-100 hover:text-red-600"
+                  onClick={handleDeindex}
+                  disabled={isDeindexing}
+                  title="De-index this resource"
+                >
+                  <PinOff className="size-3" />
+                  <span className="sr-only">De-index</span>
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>
+                <span>De-index this resource</span>
+              </TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
         )}
       </div>
     </TableCell>
