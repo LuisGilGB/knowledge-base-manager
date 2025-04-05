@@ -15,7 +15,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { useKnowledgeBase } from "@/contexts/KnowledgeBaseContext";
 import { useSelection } from "@/contexts/SelectionContext";
 import { CreateKnowledgeBaseParams, useCreateKnowledgeBase } from "@/lib/api/hooks";
-import { Resource } from "@/domain/Resource";
+import { filterOutDescendantResources, Resource } from "@/domain/Resource";
 import { cn } from "@/lib/utils";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { ChevronDown, ChevronUp, File, Folder } from "lucide-react";
@@ -85,7 +85,20 @@ const CreateKnowledgeBaseModal = ({
 
   const onSubmit = async (data: FormData) => {
     try {
-      const resourceIds = selectedResources.map(resource => resource.resource_id);
+      const filteredResources = filterOutDescendantResources(selectedResources);
+
+      // If we filtered out any resources, show a toast notification
+      if (filteredResources.length < selectedResources.length) {
+        const removedCount = selectedResources.length - filteredResources.length;
+        toast.info(
+          `Removed ${removedCount} redundant resource${removedCount > 1 ? 's' : ''}`,
+          {
+            description: "Resources that are descendants of other selected resources were automatically removed to avoid duplication."
+          }
+        );
+      }
+
+      const resourceIds = filteredResources.map(resource => resource.resource_id);
       const params: CreateKnowledgeBaseParams = {
         connectionId,
         connectionSourceIds: resourceIds,

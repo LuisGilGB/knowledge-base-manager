@@ -3,7 +3,7 @@
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { TableCell } from "@/components/ui/table";
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { ResourceStatus, useKnowledgeBase } from "@/contexts/KnowledgeBaseContext";
 import { Resource } from "@/domain/Resource";
 import { useDeindexResource } from "@/lib/api/hooks";
@@ -92,26 +92,24 @@ const StatusCell = ({ resource }: StatusCellProps) => {
           {config.label}
         </Badge>
         {resourceStatus === 'indexed' && (
-          <TooltipProvider>
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className="handle-5 size-5 rounded-full hover:bg-red-100 hover:text-red-600"
-                  onClick={handleDeindex}
-                  disabled={isDeindexing}
-                  title="De-index this resource"
-                >
-                  <PinOff className="size-3" />
-                  <span className="sr-only">De-index</span>
-                </Button>
-              </TooltipTrigger>
-              <TooltipContent>
-                <span>De-index this resource</span>
-              </TooltipContent>
-            </Tooltip>
-          </TooltipProvider>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button
+                variant="ghost"
+                size="icon"
+                className="handle-5 size-5 rounded-full hover:bg-red-100 hover:text-red-600"
+                onClick={handleDeindex}
+                disabled={isDeindexing}
+                title="De-index this resource"
+              >
+                <PinOff className="size-3" />
+                <span className="sr-only">De-index</span>
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent>
+              <span>De-index this resource</span>
+            </TooltipContent>
+          </Tooltip>
         )}
       </div>
     </TableCell>
