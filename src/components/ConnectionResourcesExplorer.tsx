@@ -1,7 +1,6 @@
 'use client';
 
 import { Button } from "@/components/ui/button";
-import { Checkbox } from "@/components/ui/checkbox";
 import { SelectionProvider, useSelection } from "@/contexts/SelectionContext";
 import { Resource } from "@/domain/Resource";
 import { useInfiniteResources } from "@/lib/api/hooks";
@@ -52,17 +51,7 @@ const Toolbar = ({
 
   return (
     <>
-      <div className="flex items-center justify-between py-1">
-        <div className="flex items-center space-x-2">
-          <Checkbox
-            checked={allSelected}
-            onCheckedChange={handleSelectAllChange}
-            aria-label="Select all resources"
-          />
-          <span className="text-sm text-muted-foreground">
-            {selectedCount > 0 ? `${selectedCount} selected` : 'Select all resources'}
-          </span>
-        </div>
+      <div className="flex items-center justify-end py-1">
         <Button
           size="sm"
           disabled={selectedCount === 0}
