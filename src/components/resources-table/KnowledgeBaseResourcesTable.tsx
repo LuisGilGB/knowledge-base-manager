@@ -17,7 +17,7 @@ const KnowledgeBaseResourcesTable = ({ knowledgeBaseId, onDeindexResourceClick, 
       {...props}
       renderRow={(resource) => (
         <KnowledgeBaseResourceRow
-          key={resource.resource_id}
+          key={resource.inode_path.path}
           knowledgeBaseId={knowledgeBaseId}
           resource={resource}
           onDeindexClick={onDeindexResourceClick}

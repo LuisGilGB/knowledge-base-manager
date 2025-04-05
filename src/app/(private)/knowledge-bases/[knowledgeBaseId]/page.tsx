@@ -13,10 +13,10 @@ const KnowledgeBasePage = async ({
 }) => {
   const { knowledgeBaseId } = await params;
   return (
-    <div className="h-full flex flex-col gap-4">
+    <main className="h-full flex flex-col gap-4 p-4 overflow-hidden">
       <h2 className="text-2xl font-bold">Knowledge Base Explorer</h2>
       <KnowledgeBaseResourcesExplorer knowledgeBaseId={knowledgeBaseId} className="flex-1 overflow-hidden" />
-    </div>
+    </main>
   )
 }
 

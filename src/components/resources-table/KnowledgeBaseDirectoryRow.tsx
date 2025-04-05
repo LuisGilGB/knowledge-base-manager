@@ -52,7 +52,7 @@ const KnowledgeBaseDirectoryRow = ({ knowledgeBaseId, resource, leftOffset = 0 }
 
   return (
     <>
-      <TableRow key={resource.resource_id} onMouseEnter={prefetchChildren}>
+      <TableRow onMouseEnter={prefetchChildren}>
         <DirectoryNameCell
           resource={resource}
           leftOffset={leftOffset}
@@ -72,14 +72,14 @@ const KnowledgeBaseDirectoryRow = ({ knowledgeBaseId, resource, leftOffset = 0 }
           {childrenResources?.map((childResource) => (
             childResource.inode_type === 'directory' ? (
               <KnowledgeBaseDirectoryRow
-                key={childResource.resource_id}
+                key={childResource.inode_path.path}
                 knowledgeBaseId={knowledgeBaseId}
                 resource={childResource}
                 leftOffset={leftOffset + 1}
               />
             ) : (
               <KnowledgeBaseFileRow
-                key={childResource.resource_id}
+                key={childResource.inode_path.path}
                 resource={childResource}
                 leftOffset={leftOffset + 1}
                 onDeindexClick={handleDeindexChildrenResource}

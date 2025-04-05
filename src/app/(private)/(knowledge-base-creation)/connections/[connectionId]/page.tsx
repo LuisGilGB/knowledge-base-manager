@@ -2,7 +2,7 @@ import ResourcesExplorer from "@/components/ConnectionResourcesExplorer";
 import { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: 'TestackAI - Connection',
+  title: 'TestackAI - Connection Explorer',
   description: 'Explore your resources located in an external provider and create knowledge bases from them.',
 };
 
@@ -14,7 +14,7 @@ const ConnectionPage = async ({
   const { connectionId } = await params;
   return (
     <div className="h-full flex flex-col gap-4">
-      <h2 className="text-2xl font-bold">Connection Explorer</h2>
+      <h3 className="text-2xl font-bold">Connection Explorer</h3>
       <ResourcesExplorer connectionId={connectionId} className="flex-1 overflow-hidden" />
     </div>
   )

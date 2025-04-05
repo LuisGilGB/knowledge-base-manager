@@ -41,7 +41,7 @@ const ConnectionDirectoryRow = ({ connectionId, resource, leftOffset = 0 }: Conn
 
   return (
     <>
-      <TableRow key={resource.resource_id} className={selected ? "bg-muted/50" : ""} onMouseEnter={prefetchChildren}>
+      <TableRow className={selected ? "bg-muted/50" : ""} onMouseEnter={prefetchChildren}>
         <SelectorCell
           resource={resource}
         />
