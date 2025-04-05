@@ -4,19 +4,18 @@ import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { KnowledgeBaseProvider } from "@/contexts/KnowledgeBaseContext";
 import { SelectionProvider, useSelection } from "@/contexts/SelectionContext";
-import { useInfiniteResources } from "@/lib/api/hooks";
 import { Resource } from "@/domain/Resource";
+import { useInfiniteResources } from "@/lib/api/hooks";
+import { cn } from "@/lib/utils";
 import { Info, PlusCircle } from "lucide-react";
 import { useRef, useState } from "react";
 import { toast } from "sonner";
 import CreateKnowledgeBaseModal from "./CreateKnowledgeBaseModal";
-import ResourcesTable from "./resources-table/ResourcesTable";
 import ViewBoundary from "./boundaries/ViewBoundary";
-import { cn } from "@/lib/utils";
+import ConnectionResourcesTable from "./resources-table/ConnectionResourcesTable";
 
-interface ResourcesExplorerProps {
+interface ConnectionResourcesExplorerProps {
   connectionId: string;
-  resourceId?: string;
   className?: string;
 }
 
@@ -86,12 +85,12 @@ const Toolbar = ({
   );
 };
 
-const ResourcesExplorer = ({ connectionId, resourceId, className }: ResourcesExplorerProps) => {
+const ConnectionResourcesExplorer = ({ connectionId, className }: ConnectionResourcesExplorerProps) => {
   const {
     resources,
   } = useInfiniteResources(
     connectionId,
-    resourceId,
+    undefined,
     {
       suspense: true,
       initialSize: 1
@@ -108,7 +107,7 @@ const ResourcesExplorer = ({ connectionId, resourceId, className }: ResourcesExp
               resources={resources}
               connectionId={connectionId}
             />
-            <ResourcesTable ref={tableRef} connectionId={connectionId} resources={resources} />
+            <ConnectionResourcesTable ref={tableRef} connectionId={connectionId} resources={resources} />
             {
               // TODO: I'm getting 500 errors when sending the cursor as a query parameter of the resources request,
               // so for now we're not going to support infinite scrolling.
@@ -151,12 +150,12 @@ const ResourcesExplorer = ({ connectionId, resourceId, className }: ResourcesExp
   );
 };
 
-const ResourcesExplorerView = ({ connectionId, resourceId, className }: ResourcesExplorerProps) => {
+const ConnectionResourcesExplorerView = ({ connectionId, className }: ConnectionResourcesExplorerProps) => {
   return (
     <ViewBoundary className={className}>
-      <ResourcesExplorer connectionId={connectionId} resourceId={resourceId} />
+      <ConnectionResourcesExplorer connectionId={connectionId} />
     </ViewBoundary>
   );
 };
 
-export default ResourcesExplorerView;
+export default ConnectionResourcesExplorerView;

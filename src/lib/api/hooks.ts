@@ -88,10 +88,10 @@ export const useKnowledgeBaseResources = (
   knowledgeBaseId: string | null,
   resourcePath: string = '/',
   cursor?: string,
-  config: SWRConfiguration = {}
+  { enabled = true, ...config }: SWRConfiguration & { enabled?: boolean } = {}
 ): SWRResponse<PaginatedResponse<Resource>, Error> => {
   return useSWR(
-    knowledgeBaseId && AuthService.isAuthenticated()
+    enabled && knowledgeBaseId && AuthService.isAuthenticated()
       ? ['kb-resources', knowledgeBaseId, resourcePath, cursor]
       : null,
     async () => {

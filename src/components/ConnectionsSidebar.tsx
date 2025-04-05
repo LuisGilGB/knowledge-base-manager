@@ -24,7 +24,7 @@ const ConnectionsGroupContent = () => {
     <ConnectionsGroupContentWrapper>
       {connections?.map((connection) => (
         <SidebarMenuItem key={connection.connection_id}>
-          <Link href={`/${connection.connection_id}`}>
+          <Link href={`/connections/${connection.connection_id}`}>
             <SidebarMenuButton tooltip={connection.name} className="data-[slot=sidebar-menu-button]:!p-1.5">
               <span>{connection.name}</span>
             </SidebarMenuButton>

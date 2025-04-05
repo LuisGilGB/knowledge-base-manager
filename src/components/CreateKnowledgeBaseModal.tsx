@@ -12,7 +12,6 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { useKnowledgeBase } from "@/contexts/KnowledgeBaseContext";
 import { useSelection } from "@/contexts/SelectionContext";
 import { CreateKnowledgeBaseParams, useCreateKnowledgeBase } from "@/lib/api/hooks";
 import { filterOutDescendantResources, Resource } from "@/domain/Resource";
@@ -25,6 +24,7 @@ import { toast } from "sonner";
 import { z } from "zod";
 import { getResourceName } from "./resources-table/utils";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "./ui/collapsible";
+import { useRouter } from "next/navigation";
 
 const formSchema = z.object({
   name: z.string().min(1, "Name is required"),
@@ -46,12 +46,9 @@ const CreateKnowledgeBaseModal = ({
   connectionId,
   selectedResources,
 }: CreateKnowledgeBaseModalProps) => {
+  const router = useRouter();
   const [isResourcesOpen, setIsResourcesOpen] = useState(false);
   const { clearSelection } = useSelection();
-  const {
-    setCurrentKnowledgeBase,
-    setResourcesAsPending
-  } = useKnowledgeBase();
 
   const {
     register,
@@ -66,20 +63,11 @@ const CreateKnowledgeBaseModal = ({
     },
   });
   const { trigger: createKnowledgeBase, isMutating } = useCreateKnowledgeBase({
-    onBeforeCreationRequest: (params) => {
-      // Set the selected resources as pending in the status map
-      setResourcesAsPending(params.connectionSourceIds);
-
-      // We close the dialog optimistically, but with a small delay so the effect is not too jarring
-      setTimeout(() => {
-        reset();
-        // TODO: Restore selection in case the creation of the knowledge base fails
-        clearSelection();
-        onClose();
-      }, 100);
-    },
     onCreationCompleted: (_params, knowledgeBase) => {
-      setCurrentKnowledgeBase(knowledgeBase);
+      reset();
+      clearSelection();
+      onClose();
+      router.push(`/knowledge-bases/${knowledgeBase.knowledge_base_id}`);
     }
   });
 

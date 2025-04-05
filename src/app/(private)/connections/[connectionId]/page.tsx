@@ -1,4 +1,4 @@
-import ResourcesExplorer from "@/components/ResourcesExplorer";
+import ResourcesExplorer from "@/components/ConnectionResourcesExplorer";
 import { Metadata } from "next";
 
 export const metadata: Metadata = {
@@ -6,7 +6,7 @@ export const metadata: Metadata = {
   description: 'Explore your resources located in an external provider and create knowledge bases from them.',
 };
 
-const Page = async ({
+const ConnectionPage = async ({
   params,
 }: {
   params: Promise<{ connectionId: string }>
@@ -20,4 +20,4 @@ const Page = async ({
   )
 }
 
-export default Page;
+export default ConnectionPage;
