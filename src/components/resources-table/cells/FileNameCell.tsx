@@ -9,7 +9,7 @@ const FileNameCell = ({ resource, leftOffset = 0 }: { resource: FileResource; le
   return (
     <TableCell>
       <div className="flex items-center">
-        <span className="block w-6" />
+        <span className="block w-5" />
         {Array.from({ length: leftOffset }).map((_, index) => (
           <span key={index} className="block w-6" />
         ))}
