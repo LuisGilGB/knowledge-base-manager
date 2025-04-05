@@ -3,10 +3,11 @@
 import { Button } from "@/components/ui/button";
 import { TableCell } from "@/components/ui/table";
 import { useSelection } from "@/contexts/SelectionContext";
+import { DirectoryResource } from "@/domain/Resource";
 import useToggle from "@/hooks/useToggle";
 import { useResources } from "@/lib/api/hooks";
-import { DirectoryResource } from "@/domain/Resource";
 import { ChevronDown, ChevronRight, Folder } from "lucide-react";
+import { useCallback, useState } from "react";
 import { TableRow } from "../ui/table";
 import SelectorCell from "./cells/SelectorCell";
 import StatusCell from "./cells/StatusCell";
@@ -22,14 +23,35 @@ interface DirectoryRowProps {
 
 const DirectoryRow = ({ connectionId, resource, leftOffset = 0 }: DirectoryRowProps) => {
   const [expanded, toggleExpanded] = useToggle(false);
+  const [prefetchTriggered, setPrefetchTriggered] = useState(false);
   const { isSelected } = useSelection();
   const selected = isSelected(resource.resource_id);
 
-  const { data: childrenResources, isLoading: isLoadingChildren } = useResources(connectionId, resource.resource_id, { enabled: expanded });
+  // Notice how we don't necessarily wait to expanded to be true to fetch the children. This is a UX decision
+  // to offer the user a smoother experience by prefetching the children. Otherwise, the user must wait to the fetch
+  // to finish right after clicking on the expand button.
+  //
+  // There are many different policies we could use here, all of them with their set of trade-offs:
+  // - We may prefetch all by default, no matter expanded or hovering states -> We grant availability of children ASAP but with a higher initial load and very likely overfetching.
+  // - We may prefetch only when the user hovers -> We grant availability of children when there's a likelier chance of the user wanting to expand the directory. Some overfetching, but not as much.
+  //    - We have some range with this option, as we can choose the hover of the full row or the expand button itself.
+  //    - Should be paired with focus enter events for accessibility.
+  // - We may prefetch only when the user clicks to expand -> Children aren't fetched until it's sure the user wants to see them; but there's no prefetching at all and the user must wait for the fetch to finish. No overfetching.
+  const { data: childrenResources, isLoading: isLoadingChildren } = useResources(connectionId, resource.resource_id, { enabled: expanded || prefetchTriggered });
+
+  const prefetchChildren = useCallback(() => {
+    setPrefetchTriggered(true);
+  }, []);
+
+  const onToggleExpandClick = useCallback((e: React.MouseEvent) => {
+    e.stopPropagation();
+    e.preventDefault();
+    toggleExpanded();
+  }, [toggleExpanded]);
 
   return (
     <>
-      <TableRow key={resource.resource_id} className={selected ? "bg-muted/50" : ""}>
+      <TableRow key={resource.resource_id} className={selected ? "bg-muted/50" : ""} onMouseEnter={prefetchChildren}>
         <SelectorCell
           resource={resource}
         />
@@ -43,11 +65,8 @@ const DirectoryRow = ({ connectionId, resource, leftOffset = 0 }: DirectoryRowPr
                 variant="ghost"
                 size="icon"
                 className="size-6"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  e.preventDefault();
-                  toggleExpanded();
-                }}
+                onFocus={prefetchChildren}
+                onClick={onToggleExpandClick}
               >
                 {expanded ?
                   <ChevronDown className="h-4 w-4" /> :
