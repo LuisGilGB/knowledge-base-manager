@@ -1,17 +1,19 @@
 
 'use client';
 
-import { SidebarProvider } from "@/components/ui/sidebar";
+import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import ConnectionsSidebar from "@/components/ConnectionsSidebar";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { AuthService } from "@/lib/api/services";
+import { usePathname } from "next/navigation";
 
 const PrivateLayout = ({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) => {
+  const pathname = usePathname();
   const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null);
   const router = useRouter();
 
@@ -21,12 +23,17 @@ const PrivateLayout = ({
       setIsAuthenticated(isLoggedIn);
 
       if (!isLoggedIn) {
-        router.push('/login');
+        // Use the URL and other related apis to build the redirect path
+        const loginUrl = new URL('/login', window.location.origin);
+        if (pathname !== '/') {
+          loginUrl.searchParams.set('redirect_to', pathname);
+        }
+        router.push(loginUrl.toString());
       }
     };
 
     checkAuth();
-  }, [router]);
+  }, [router, pathname]);
 
   // Show loading state while checking authentication
   if (isAuthenticated === null) {
@@ -40,7 +47,12 @@ const PrivateLayout = ({
   return (
     <SidebarProvider>
       <ConnectionsSidebar />
-      <main className="flex-1 p-4 overflow-x-hidden">{children}</main>
+      <main className="relative flex-1 p-4 pt-10 overflow-x-hidden">
+        <div className="absolute top-2 left-2">
+          <SidebarTrigger />
+        </div>
+        {children}
+      </main>
     </SidebarProvider>
   );
 }

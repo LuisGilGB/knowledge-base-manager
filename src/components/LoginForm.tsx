@@ -20,6 +20,7 @@ const loginSchema = z.object({
 type LoginFormData = z.infer<typeof loginSchema>;
 
 export const LoginForm = ({ className, ...props }: React.ComponentPropsWithoutRef<"div">) => {
+  const searchParams = new URLSearchParams(window.location.search);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
   const router = useRouter();
@@ -45,7 +46,8 @@ export const LoginForm = ({ className, ...props }: React.ComponentPropsWithoutRe
         { email: data.email, password: data.password },
         {
           onSuccess: () => {
-            router.push('/');
+            const redirectPath = searchParams.get('redirect_to') || '/';
+            router.push(redirectPath);
           },
           onError: (error) => {
             console.error('Login failed:', error);

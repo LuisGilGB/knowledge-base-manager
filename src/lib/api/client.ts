@@ -1,5 +1,5 @@
 /**
- * API client for making requests to the Stack AI API
+ * API client for making requests to the StackAI API
  */
 import { SUPABASE_AUTH_URL, BACKEND_URL, ANON_KEY } from '@/config/api';
 import { AuthCredentials, AuthHeaders, AuthResponse } from './types';
