@@ -1,16 +1,16 @@
 'use client';
 
-import { useRouter } from 'next/navigation';
-import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { AuthService } from '@/lib/api/services';
-import { useForm } from "react-hook-form";
+import { cn } from "@/lib/utils";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { z } from "zod";
+import { useRouter, useSearchParams } from 'next/navigation';
 import { useState } from 'react';
+import { useForm } from "react-hook-form";
+import { z } from "zod";
 
 const loginSchema = z.object({
   email: z.string().email("Please enter a valid email address"),
@@ -19,8 +19,8 @@ const loginSchema = z.object({
 
 type LoginFormData = z.infer<typeof loginSchema>;
 
-export const LoginForm = ({ className, ...props }: React.ComponentPropsWithoutRef<"div">) => {
-  const searchParams = new URLSearchParams(window.location.search);
+const LoginForm = ({ className, ...props }: React.ComponentPropsWithoutRef<"div">) => {
+  const searchParams = useSearchParams();
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
   const router = useRouter();
@@ -46,6 +46,9 @@ export const LoginForm = ({ className, ...props }: React.ComponentPropsWithoutRe
         { email: data.email, password: data.password },
         {
           onSuccess: () => {
+            // To redirect here or in an upper layer? Passing an onSuccess prop is cleaner most times; but it's very unlikely
+            // that we don't want to redirect right after a successful login, so this may be a good case for an exception.
+            // Worth discussing due to the coupling with Next.js this creates, though.
             const redirectPath = searchParams.get('redirect_to') || '/';
             router.push(redirectPath);
           },
@@ -112,3 +115,5 @@ export const LoginForm = ({ className, ...props }: React.ComponentPropsWithoutRe
     </div>
   );
 };
+
+export default LoginForm;
