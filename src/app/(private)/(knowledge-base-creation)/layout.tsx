@@ -6,8 +6,8 @@ const ConnectionsExplorerLayout = ({
   children: React.ReactNode;
 }>) => {
   return (
-    <div className="flex gap-x-4 h-full divide-x">
-      <ConnectionsSelector className="w-48" />
+    <div className="flex flex-col-reverse md:flex-row h-full divide-y md:divide-x">
+      <ConnectionsSelector className="md:w-48" />
       <div className="flex-1 p-4 pt-10 overflow-x-hidden">
         {children}
       </div>
