@@ -117,8 +117,8 @@ export class ConnectionService {
    * @returns List of resources in the directory
    */
   async listResources(
-    connectionId: string, 
-    resourceId?: string, 
+    connectionId: string,
+    resourceId?: string,
     cursor?: string
   ): Promise<PaginatedResponse<Resource>> {
     try {
@@ -128,7 +128,7 @@ export class ConnectionService {
       if (resourceId) {
         queryParams.resource_id = resourceId;
       }
-      
+
       if (cursor) {
         queryParams.cursor = cursor;
       }
@@ -246,7 +246,7 @@ export class KnowledgeBaseService {
       const queryParams: Record<string, string> = {
         resource_path: resourcePath,
       };
-      
+
       if (cursor) {
         queryParams.cursor = cursor;
       }

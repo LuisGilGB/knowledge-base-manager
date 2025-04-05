@@ -6,7 +6,7 @@ import { KnowledgeBaseProvider } from "@/contexts/KnowledgeBaseContext";
 import { SelectionProvider, useSelection } from "@/contexts/SelectionContext";
 import { useInfiniteResources } from "@/lib/api/hooks";
 import { Resource } from "@/domain/Resource";
-import { Info, Loader2, PlusCircle } from "lucide-react";
+import { Info, PlusCircle } from "lucide-react";
 import { useRef, useState } from "react";
 import { toast } from "sonner";
 import CreateKnowledgeBaseModal from "./CreateKnowledgeBaseModal";
@@ -89,9 +89,6 @@ const Toolbar = ({
 const ResourcesExplorer = ({ connectionId, resourceId, className }: ResourcesExplorerProps) => {
   const {
     resources,
-    hasNextPage,
-    loadMore,
-    isValidating
   } = useInfiniteResources(
     connectionId,
     resourceId,
@@ -112,7 +109,15 @@ const ResourcesExplorer = ({ connectionId, resourceId, className }: ResourcesExp
               connectionId={connectionId}
             />
             <ResourcesTable ref={tableRef} connectionId={connectionId} resources={resources} />
-            {hasNextPage && (
+            {
+              // TODO: I'm getting 500 errors when sending the cursor as a query parameter of the resources request,
+              // so for now we're not going to support infinite scrolling.
+              //
+              // The Load more button is a provisional solution to verify the requests of the following pages work as expected
+              // without triggering huge amounts of requests while trying. It's expected to be replaces by a scroll handler or
+              // an interceptor.
+            }
+            {/*hasNextPage && (
               <div className="flex justify-center py-2">
                 <Button
                   variant="outline"
@@ -131,7 +136,7 @@ const ResourcesExplorer = ({ connectionId, resourceId, className }: ResourcesExp
                   )}
                 </Button>
               </div>
-            )}
+            )*/}
           </div>
         ) : (
           <div className={cn("h-full flex flex-col items-center justify-center gap-2 p-4", className)}>
